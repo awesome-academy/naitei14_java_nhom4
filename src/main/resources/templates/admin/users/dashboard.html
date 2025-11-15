@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{admin/users/layout :: layout(~{::body})}">
+<body>
+    <h2 th:text="${titleTrang}">Dashboard</h2>
+    <p>Chi tiêu tháng: <span th:text="${tongChiTieuThang}">0</span></p>
+    <p>Thu nhập tháng: <span th:text="${tongThuNhapThang}">0</span></p>
+    <p>Số dư: <span th:text="${balance}">0</span></p>
+</body>
+</html>
