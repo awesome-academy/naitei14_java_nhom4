@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng ký Tài khoản</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .error-message { color: red; font-size: 0.9em; margin-top: 5px; }
+        .alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+        .alert-error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Đăng ký Hệ thống Quản lý Chi tiêu</h1>
+
+    <form method="post"
+          role="form"
+          th:action="@{/register}"
+          th:object="${userRequest}"
+          class="registration-form">
+
+        <div th:if="${generalError}" class="alert alert-error">
+            <span th:text="${generalError}"></span>
+        </div>
+
+        <div>
+            <label for="name">Tên đầy đủ:</label>
+            <input type="text" id="name" th:field="*{name}" placeholder="Nhập tên của bạn">
+            <span th:if="${#fields.hasErrors('name')}"
+                  th:errors="*{name}"
+                  class="error-message">Name Error</span>
+        </div>
+
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" th:field="*{email}" placeholder="example@domain.com">
+            <span th:if="${#fields.hasErrors('email')}"
+                  th:errors="*{email}"
+                  class="error-message">Email Error</span>
+            <span th:if="${emailError}" class="error-message" th:text="${emailError}">Email exists</span>
+        </div>
+
+        <div>
+            <label for="password">Mật khẩu:</label>
+            <input type="password" id="password" th:field="*{password}" placeholder="Mật khẩu (ít nhất 6 ký tự)">
+            <span th:if="${#fields.hasErrors('password')}"
+                  th:errors="*{password}"
+                  class="error-message">Password Error</span>
+        </div>
+
+        <div>
+            <label for="confirmPassword">Xác nhận Mật khẩu:</label>
+            <input type="password" id="confirmPassword" th:field="*{confirmPassword}" placeholder="Nhập lại mật khẩu">
+            <span th:if="${passwordError}" class="error-message" th:text="${passwordError}">Password Mismatch</span>
+        </div>
+
+        <button type="submit">Đăng ký</button>
+    </form>
+
+    <p>
+        Bạn đã có tài khoản? <a th:href="@{/login}">Đăng nhập tại đây</a>
+    </p>
+</div>
+
+</body>
+</html>
