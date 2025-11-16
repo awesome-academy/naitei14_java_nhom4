@@ -1,47 +1,51 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Đăng nhập</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .alert-success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
-        .alert-error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
-    </style>
+    <title>Login - Expense Manager</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
 <body>
 
-<div class="container">
-    <h1>Đăng nhập Hệ thống Quản lý Chi tiêu</h1>
-
-    <div th:if="${param.error}" class="alert alert-error">
-        Email hoặc mật khẩu không hợp lệ. Vui lòng thử lại.
-    </div>
-
-    <div th:if="${param.logout}" class="alert alert-success">
-        Bạn đã đăng xuất thành công.
-    </div>
-
-    <div th:if="${param.registered}" class="alert alert-success">
-        Đăng ký thành công! Vui lòng đăng nhập.
-    </div>
-
-    <form method="post" th:action="@{/login}" class="login-form">
-        <div>
-            <label for="username">Email:</label>
-            <input type="text" id="username" name="username" placeholder="Nhập email" required autofocus />
-        </div>
-        <div>
-            <label for="password">Mật khẩu:</label>
-            <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required />
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>💰 Expense Manager</h1>
+            <p>Welcome back! Please sign in to your account</p>
         </div>
 
-        <button type="submit">Đăng nhập</button>
-    </form>
+        <div th:if="${param.error}" class="alert alert-error">
+            <span class="alert-icon">⚠️</span>
+            Invalid email or password. Please try again.
+        </div>
 
-    <p>
-        Bạn chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a>
-    </p>
+        <div th:if="${param.logout}" class="alert alert-success">
+            <span class="alert-icon">✅</span>
+            You have been logged out successfully.
+        </div>
+
+        <div th:if="${param.registered}" class="alert alert-success">
+            <span class="alert-icon">🎉</span>
+            Registration successful! Please sign in.
+        </div>
+
+        <form method="post" th:action="@{/login}" class="auth-form">
+            <div class="form-group">
+                <label for="username">Email Address</label>
+                <input type="email" id="username" name="username" placeholder="Enter your email" required autofocus />
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Sign In</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a th:href="@{/register}" class="auth-link">Create one here</a></p>
+        </div>
+    </div>
 </div>
 
 </body>

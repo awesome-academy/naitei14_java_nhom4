@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en"
+      th:fragment="layout(content)">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${titleTrang} ?: 'Expense Manager'">Expense Manager</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<header class="main-header">
+    <div class="header-container">
+        <h1 class="logo">💰 Expense Manager</h1>
+        <nav class="main-nav">
+            <a th:href="@{/dashboard}" class="nav-link">📊 Dashboard</a>
+            <a th:href="@{/expenses}" class="nav-link">💸 Expenses</a>
+            <a th:href="@{/incomes}" class="nav-link">💰 Incomes</a>
+            <a th:href="@{/categories}" class="nav-link">📁 Categories</a>
+            <a th:href="@{/reports}" class="nav-link">📈 Reports</a>
+
+            <span sec:authorize="isAuthenticated()" class="user-info">
+                Xin chào,
+                <strong th:text="${#authentication.principal.name}">User Name</strong>!
+            </span>
+
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <button type="submit" class="logout-button">🚪 Logout</button>
+            </form>
+        </nav>
+    </div>
+</header>
+<main class="main-content">
+    <div th:replace="${content}"></div>
+</main>
+<footer class="main-footer">
+    <p>&copy; 2024 Expense Manager. All rights reserved.</p>
+</footer>
+</body>
+</html>
