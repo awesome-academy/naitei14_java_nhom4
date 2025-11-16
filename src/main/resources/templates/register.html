@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Expense Manager</title>
+    <link rel="stylesheet" th:href="@{/css/register.css}">
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>💰 Create Account</h1>
+            <p>Join Expense Manager and take control of your finances</p>
+        </div>
+
+        <form method="post"
+              role="form"
+              th:action="@{/register}"
+              th:object="${userRequest}"
+              class="auth-form">
+
+            <div th:if="${generalError}" class="alert alert-error">
+                <span class="alert-icon">⚠️</span>
+                <span th:text="${generalError}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" th:field="*{name}" placeholder="Enter your full name" />
+                <span th:if="${#fields.hasErrors('name')}"
+                      th:errors="*{name}"
+                      class="error-message">Name Error</span>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" th:field="*{email}" placeholder="example@domain.com" />
+                <span th:if="${#fields.hasErrors('email')}"
+                      th:errors="*{email}"
+                      class="error-message">Email Error</span>
+                <span th:if="${emailError}" class="error-message" th:text="${emailError}">Email exists</span>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" th:field="*{password}" placeholder="At least 6 characters" />
+                <span th:if="${#fields.hasErrors('password')}"
+                      th:errors="*{password}"
+                      class="error-message">Password Error</span>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" th:field="*{confirmPassword}" placeholder="Re-enter your password" />
+                <span th:if="${passwordError}" class="error-message" th:text="${passwordError}">Password Mismatch</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Account</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a th:href="@{/login}" class="auth-link">Sign in here</a></p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

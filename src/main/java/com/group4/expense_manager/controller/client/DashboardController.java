@@ -13,6 +13,6 @@ public class DashboardController {
         model.addAttribute("tongThuNhapThang", 0);
         model.addAttribute("balance", 0);
         model.addAttribute("titleTrang", "Dashboard");
-        return "admin/users/dashboard";
+        return "client/dashboard";
     }
 }
