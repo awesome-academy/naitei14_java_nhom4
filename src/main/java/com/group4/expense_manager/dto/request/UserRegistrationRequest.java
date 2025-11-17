@@ -23,4 +23,7 @@ public class UserRegistrationRequest {
 
     @NotEmpty(message = "Xác nhận mật khẩu không được để trống")
     private String confirmPassword;
+    // --- THÊM MỚI: Để người dùng chọn tiền tệ lúc đăng ký ---
+    // Nếu không chọn thì Service sẽ tự set là VND
+    private String defaultCurrency;
 }

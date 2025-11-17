@@ -40,6 +40,13 @@ public class UserServiceImpl implements UserService {
         newUser.setRole("client");
         newUser.setIsActive(true);
 
+        // Kiểm tra xem user có chọn tiền tệ không, nếu có thì set, không thì mặc định VND
+        if (userRequest.getDefaultCurrency() != null && !userRequest.getDefaultCurrency().isEmpty()) {
+            newUser.setDefaultCurrency(userRequest.getDefaultCurrency());
+        } else {
+            newUser.setDefaultCurrency("VND");
+        }
+
         return userRepository.save(newUser);
     }
 }
