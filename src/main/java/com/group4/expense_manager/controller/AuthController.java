@@ -42,7 +42,7 @@ public class AuthController {
             return "redirect:/dashboard";
         }
         model.addAttribute("userRequest", new UserRegistrationRequest());
-        return "register";
+        return "client/register";
     }
 
     @PostMapping("/register")
@@ -51,17 +51,17 @@ public class AuthController {
                                Model model) {
 
         if (result.hasErrors()) {
-            return "register";
+            return "client/register";
         }
 
         if (userService.findByEmail(userRequest.getEmail()).isPresent()) {
             model.addAttribute("emailError", "Email này đã được sử dụng.");
-            return "register";
+            return "client/register";
         }
 
         if (!userRequest.getPassword().equals(userRequest.getConfirmPassword())) {
             model.addAttribute("passwordError", "Mật khẩu và Xác nhận Mật khẩu không khớp.");
-            return "register";
+            return "client/register";
         }
 
         try {
@@ -69,7 +69,7 @@ public class AuthController {
             return "redirect:/login?registered=true";
         } catch (Exception e) {
             model.addAttribute("generalError", "Đăng ký thất bại. Vui lòng thử lại.");
-            return "register";
+            return "client/register";
         }
     }
 }

@@ -4,28 +4,29 @@
     <meta charset="UTF-8">
     <title>Login - Expense Manager</title>
     <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <h1>💰 Expense Manager</h1>
+            <h1><i class="fas fa-wallet"></i> Expense Manager</h1>
             <p>Welcome back! Please sign in to your account</p>
         </div>
 
         <div th:if="${param.error}" class="alert alert-error">
-            <span class="alert-icon">⚠️</span>
+            <span class="alert-icon"><i class="fas fa-exclamation-triangle"></i></span>
             Invalid email or password. Please try again.
         </div>
 
         <div th:if="${param.logout}" class="alert alert-success">
-            <span class="alert-icon">✅</span>
+            <span class="alert-icon"><i class="fas fa-check-circle"></i></span>
             You have been logged out successfully.
         </div>
 
         <div th:if="${param.registered}" class="alert alert-success">
-            <span class="alert-icon">🎉</span>
+            <span class="alert-icon"><i class="fas fa-party-horn"></i></span>
             Registration successful! Please sign in.
         </div>
 

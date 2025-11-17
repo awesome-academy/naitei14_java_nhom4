@@ -8,26 +8,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${titleTrang} ?: 'Expense Manager'">Expense Manager</title>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <header class="main-header">
     <div class="header-container">
-        <h1 class="logo">💰 Expense Manager</h1>
+        <h1 class="logo"><i class="fas fa-wallet"></i> Expense Manager</h1>
         <nav class="main-nav">
-            <a th:href="@{/dashboard}" class="nav-link">📊 Dashboard</a>
-            <a th:href="@{/expenses}" class="nav-link">💸 Expenses</a>
-            <a th:href="@{/incomes}" class="nav-link">💰 Incomes</a>
-            <a th:href="@{/categories}" class="nav-link">📁 Categories</a>
-            <a th:href="@{/reports}" class="nav-link">📈 Reports</a>
+            <a th:href="@{/dashboard}" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a th:href="@{/expenses}" class="nav-link"><i class="fas fa-money-bill-wave"></i> Expenses</a>
+            <a th:href="@{/incomes}" class="nav-link"><i class="fas fa-coins"></i> Incomes</a>
+            <a th:href="@{/categories}" class="nav-link"><i class="fas fa-folder"></i> Categories</a>
+            <a th:href="@{/reports}" class="nav-link"><i class="fas fa-chart-bar"></i> Reports</a>
 
-            <span sec:authorize="isAuthenticated()" class="user-info">
-                Xin chào,
-                <strong th:text="${#authentication.principal.name}">User Name</strong>!
-            </span>
-
-            <form th:action="@{/logout}" method="post" class="logout-form">
-                <button type="submit" class="logout-button">🚪 Logout</button>
-            </form>
+            <div sec:authorize="isAuthenticated()" class="user-dropdown">
+                <span class="user-info dropdown-trigger">
+                    Welcome,
+                    <strong th:text="${#authentication.principal.name}">User Name</strong>
+                    <i class="fas fa-chevron-down"></i>
+                </span>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item"><i class="fas fa-user"></i> My Account</a>
+                    <form th:action="@{/logout}" method="post" class="dropdown-logout-form">
+                        <button type="submit" class="dropdown-item logout-item"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                    </form>
+                </div>
+            </div>
         </nav>
     </div>
 </header>
@@ -37,5 +43,25 @@
 <footer class="main-footer">
     <p>&copy; 2024 Expense Manager. All rights reserved.</p>
 </footer>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userDropdown = document.querySelector('.user-dropdown');
+    const dropdownTrigger = document.querySelector('.dropdown-trigger');
+    
+    if (userDropdown && dropdownTrigger) {
+        dropdownTrigger.addEventListener('click', function(e) {
+            e.preventDefault();
+            userDropdown.classList.toggle('active');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userDropdown.contains(e.target)) {
+                userDropdown.classList.remove('active');
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>
