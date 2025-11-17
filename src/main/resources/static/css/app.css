@@ -39,6 +39,11 @@ body {
     margin: 0;
 }
 
+.logo i {
+    margin-right: 0.5rem;
+    color: #3b82f6;
+}
+
 .main-nav {
     display: flex;
     align-items: center;
@@ -56,6 +61,10 @@ body {
     border: 2px solid transparent;
 }
 
+.nav-link i {
+    margin-right: 0.5rem;
+}
+
 .nav-link:hover {
     background-color: #f1f5f9;
     color: #0f172a;
@@ -63,27 +72,96 @@ body {
     transform: translateY(-1px);
 }
 
-.logout-form {
+.user-dropdown {
+    position: relative;
     display: inline-block;
-    margin-left: 0.5rem;
 }
 
-.logout-button {
-    background-color: #ef4444;
-    color: white;
-    border: none;
+.user-info {
+    color: #475569;
     padding: 0.75rem 1rem;
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-family: inherit;
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.logout-button:hover {
-    background-color: #dc2626;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+.user-info:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.user-info i.fa-chevron-down {
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+}
+
+.user-dropdown.active .user-info i.fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+.user-dropdown.active .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: #475569;
+    text-decoration: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.logout-item {
+    border-top: 1px solid #e2e8f0;
+    color: #ef4444;
+}
+
+.logout-item:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.dropdown-logout-form {
+    margin: 0;
+    width: 100%;
 }
 
 /* Main Content */
@@ -223,4 +301,3 @@ input:focus, textarea:focus, select:focus {
     color: #1e293b;
     margin: 0;
 }
-

@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <title>Register - Expense Manager</title>
     <link rel="stylesheet" th:href="@{/css/register.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <h1>💰 Create Account</h1>
+            <h1><i class="fas fa-wallet"></i> Create Account</h1>
             <p>Join Expense Manager and take control of your finances</p>
         </div>
 
@@ -21,7 +22,7 @@
               class="auth-form">
 
             <div th:if="${generalError}" class="alert alert-error">
-                <span class="alert-icon">⚠️</span>
+                <span class="alert-icon"><i class="fas fa-exclamation-triangle"></i></span>
                 <span th:text="${generalError}"></span>
             </div>
 
