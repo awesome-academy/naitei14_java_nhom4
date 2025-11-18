@@ -41,8 +41,23 @@ public class Expense {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
+    // --- MỚI: Đa tiền tệ ---
+    @Column(nullable = false, length = 3)
+    private String currency = "VND";
+
     @Column(name = "expense_date", nullable = false)
     private LocalDate expenseDate;
+
+    // --- MỚI: Giao dịch định kỳ ---
+    @Column(name = "is_recurring", nullable = false)
+    private boolean isRecurring = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recurring_interval")
+    private RecurringInterval recurringInterval;
+
+    @Column(name = "recurring_end_date")
+    private LocalDate recurringEndDate;
 
     @Lob
     private String note;

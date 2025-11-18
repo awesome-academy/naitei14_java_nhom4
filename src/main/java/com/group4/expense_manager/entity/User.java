@@ -39,6 +39,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String role = "client";
 
+    @Column(name = "default_currency", nullable = false, length = 3)
+    private String defaultCurrency = "VND";
+
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
