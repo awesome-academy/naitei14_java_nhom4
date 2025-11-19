@@ -6,7 +6,13 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
+import java.util.Collection;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
 @Setter
@@ -15,7 +21,7 @@ import java.util.Set;
         @Index(name = "idx_email", columnList = "email"),
         @Index(name = "idx_role", columnList = "role")
 })
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +38,9 @@ public class User {
 
     @Column(nullable = false)
     private String role = "client";
+
+    @Column(name = "default_currency", nullable = false, length = 3)
+    private String defaultCurrency = "VND";
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
@@ -60,4 +69,44 @@ public class User {
 
     @OneToMany(mappedBy = "user") // ON DELETE SET NULL được xử lý ở mức DB hoặc @OnDelete
     private Set<ActivityLog> activityLogs;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Chuyển đổi role (String) của bạn thành GrantedAuthority
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.toUpperCase()));
+    }
+
+    @Override
+    public String getPassword() {
+        return this.passwordHash; // Trả về trường mật khẩu đã băm
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email; // Dùng email làm username để đăng nhập
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // Hoặc logic riêng nếu bạn có
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // Hoặc logic riêng
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // Hoặc logic riêng
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.isActive; // Dùng trường isActive của bạn
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
 }
