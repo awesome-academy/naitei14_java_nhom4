@@ -137,7 +137,7 @@ public class IncomeServiceImpl implements IncomeService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
 
-        if (category.getType() != CategoryType.INCOME) {
+        if (category.getType() != CategoryType.income) {
             throw new RuntimeException("Danh mục này không phải loại Thu nhập (Income).");
         }
 
