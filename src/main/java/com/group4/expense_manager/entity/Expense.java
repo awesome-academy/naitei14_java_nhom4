@@ -4,13 +4,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Set;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -28,36 +26,23 @@ public class Expense {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // SQL là ON DELETE CASCADE, DB sẽ xử lý
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id") // 'category_id' có thể là NULL
-    @OnDelete(action = OnDeleteAction.SET_NULL) // Phù hợp với 'ON DELETE SET NULL'
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @Column(nullable = false)
-    private String name;
+    private String description;
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
-    // --- MỚI: Đa tiền tệ ---
     @Column(nullable = false, length = 3)
     private String currency = "VND";
 
     @Column(name = "expense_date", nullable = false)
     private LocalDate expenseDate;
-
-    // --- MỚI: Giao dịch định kỳ ---
-    @Column(name = "is_recurring", nullable = false)
-    private boolean isRecurring = false;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "recurring_interval")
-    private RecurringInterval recurringInterval;
-
-    @Column(name = "recurring_end_date")
-    private LocalDate recurringEndDate;
 
     @Lob
     private String note;
@@ -69,8 +54,4 @@ public class Expense {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    // --- Mối quan hệ ---
-    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Attachment> attachments;
 }
