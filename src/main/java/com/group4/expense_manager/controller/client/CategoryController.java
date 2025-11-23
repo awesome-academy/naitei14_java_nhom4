@@ -7,6 +7,7 @@ import com.group4.expense_manager.entity.CategoryType;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.mapper.CategoryMapper;
 import com.group4.expense_manager.service.CategoryService;
+import com.group4.expense_manager.service.CloudinaryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -27,6 +29,9 @@ public class CategoryController {
 
 	@Autowired
 	private CategoryMapper categoryMapper;
+
+	@Autowired
+	private CloudinaryService cloudinaryService;
 
 	// LIST (Optional filter by type)
 	@GetMapping
@@ -51,26 +56,41 @@ public class CategoryController {
 		return ResponseEntity.ok(categoryMapper.toResponse(category));
 	}
 
-	// CREATE (User-specific categories)
-	@PostMapping()
+
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<CategoryResponse> createCategory(
 			@AuthenticationPrincipal User user,
-			@RequestBody @Valid CreateCategoryRequest request
+			@Valid @ModelAttribute CreateCategoryRequest request,
+			@RequestPart(value = "iconFile", required = false) MultipartFile iconFile
 	) {
+		if (iconFile != null && !iconFile.isEmpty()) {
+			String iconUrl = cloudinaryService.uploadIcon(iconFile, "categories");
+			request.setIcon(iconUrl);
+		}
 		Category category = categoryService.createCategory(user, request);
-		return ResponseEntity.status(HttpStatus.CREATED).body(categoryMapper.toResponse(category));
+		return ResponseEntity
+				.status(HttpStatus.CREATED)
+				.body(categoryMapper.toResponse(category));
 	}
 
-	// UPDATE (Only user-owned)
-	@PutMapping("/{id}")
+
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<CategoryResponse> updateCategory(
 			@PathVariable Integer id,
 			@AuthenticationPrincipal User user,
-			@RequestBody @Valid CreateCategoryRequest request
+			@Valid @ModelAttribute CreateCategoryRequest request,
+			@RequestPart(value = "iconFile", required = false) MultipartFile iconFile
 	) {
+		// Upload icon mới nếu có
+		if (iconFile != null && !iconFile.isEmpty()) {
+			String iconUrl = cloudinaryService.uploadIcon(iconFile, "categories");
+			request.setIcon(iconUrl);
+		}
+
 		Category category = categoryService.updateCategory(id, user, request);
 		return ResponseEntity.ok(categoryMapper.toResponse(category));
 	}
+
 
 	// DELETE (Only user-owned)
 	@DeleteMapping("/{id}")

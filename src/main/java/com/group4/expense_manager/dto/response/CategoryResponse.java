@@ -12,6 +12,7 @@ public class CategoryResponse {
     private Integer id;
     private String name;
     private String description;
+    private String icon; // đường dẫn icon
     private CategoryType type;
     private Integer userId; // null nếu là global
     private Instant createdAt;

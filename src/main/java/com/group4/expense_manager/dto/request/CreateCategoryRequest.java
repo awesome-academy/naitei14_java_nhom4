@@ -14,6 +14,9 @@ public class CreateCategoryRequest {
 
 	private String description;
 
+	// URL icon (có thể được set sau khi upload Cloudinary)
+	private String icon;
+
 	@NotNull(message = "Loại danh mục không được để trống.")
 	private CategoryType type; // expense | income
 }
