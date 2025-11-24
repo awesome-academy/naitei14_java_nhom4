@@ -1,10 +1,80 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en"
-      th:replace="~{fragments/layout :: layout(~{::body})}">
+<html xmlns:th="http://www.thymeleaf.org" lang="en" th:replace="~{fragments/layout :: layout(~{::body})}">
 <body>
-    <h2 th:text="${titleTrang}">Dashboard</h2>
-    <p>Chi tiêu tháng: <span th:text="${tongChiTieuThang}">0</span></p>
-    <p>Thu nhập tháng: <span th:text="${tongThuNhapThang}">0</span></p>
-    <p>Số dư: <span th:text="${balance}">0</span></p>
+<div class="card">
+	<div class="card-header">
+		<h2 class="card-title" th:text="${titleTrang}">Dashboard</h2>
+	</div>
+	<div class="stats" style="display:flex;gap:2rem;flex-wrap:wrap;">
+		<div class="stat-box" style="flex:1;min-width:220px;background:#f0fdf4;padding:1rem;border-radius:8px;border:1px solid #dcfce7;">
+			<h3 style="margin-top:0;font-size:1rem;color:#065f46">Thu nhập tháng này</h3>
+			<p style="font-size:1.8rem;font-weight:700;color:#10b981" th:text="${#numbers.formatDecimal(tongThuNhapThang,0,'COMMA',0,'POINT')} + ' ' + ${#authentication.principal.defaultCurrency}">0 VND</p>
+		</div>
+		<div class="stat-box" style="flex:1;min-width:220px;background:#eff6ff;padding:1rem;border-radius:8px;border:1px solid #dbeafe;">
+			<h3 style="margin-top:0;font-size:1rem;color:#1e3a8a">Ngân sách đang hoạt động</h3>
+			<p style="font-size:1.8rem;font-weight:700;color:#3b82f6" th:text="${budgetsHienTai.size()} + ' mục'">0 mục</p>
+		</div>
+	</div>
+</div>
+
+<!-- Bảng thu nhập tháng này -->
+<div class="card" style="margin-top:2rem;">
+	<div class="card-header">
+		<h3 style="margin:0;">Thu nhập tháng này</h3>
+	</div>
+	<div th:if="${#lists.isEmpty(incomesThangNay)}">
+		<p>Chưa có thu nhập nào trong tháng.</p>
+	</div>
+	<table th:if="${!#lists.isEmpty(incomesThangNay)}" class="table-income" style="width:100%;border-collapse:collapse;">
+		<thead>
+		<tr style="background:#f1f5f9;">
+			<th style="padding:8px;text-align:left;">Ngày</th>
+			<th style="padding:8px;text-align:left;">Nguồn</th>
+			<th style="padding:8px;text-align:right;">Số tiền</th>
+			<th style="padding:8px;text-align:left;">Danh mục</th>
+			<th style="padding:8px;text-align:left;">Định kỳ</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr th:each="inc : ${incomesThangNay}" style="border-bottom:1px solid #e2e8f0;">
+			<td style="padding:6px;" th:text="${inc.incomeDate}">2025-11-01</td>
+			<td style="padding:6px;" th:text="${inc.source}">Lương</td>
+			<td style="padding:6px;text-align:right;" th:text="${#numbers.formatDecimal(inc.amount,0,'COMMA',0,'POINT')} + ' ' + inc.currency">0 VND</td>
+			<td style="padding:6px;" th:text="${inc.category != null ? inc.category.name : '—'}">General</td>
+			<td style="padding:6px;" th:text="${inc.recurringInterval != null ? inc.recurringInterval : 'Không'}">Không</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+
+<!-- Bảng ngân sách hiện tại -->
+<div class="card" style="margin-top:2rem;">
+	<div class="card-header">
+		<h3 style="margin:0;">Ngân sách đang hoạt động</h3>
+	</div>
+	<div th:if="${#lists.isEmpty(budgetsHienTai)}">
+		<p>Chưa có ngân sách nào trong tháng này.</p>
+	</div>
+	<table th:if="${!#lists.isEmpty(budgetsHienTai)}" style="width:100%;border-collapse:collapse;">
+		<thead>
+		<tr style="background:#f1f5f9;">
+			<th style="padding:8px;text-align:left;">Danh mục</th>
+			<th style="padding:8px;text-align:right;">Số tiền</th>
+			<th style="padding:8px;text-align:left;">Tiền tệ</th>
+			<th style="padding:8px;text-align:left;">Bắt đầu</th>
+			<th style="padding:8px;text-align:left;">Kết thúc</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr th:each="b : ${budgetsHienTai}" style="border-bottom:1px solid #e2e8f0;">
+			<td style="padding:6px;" th:text="${b.category.name}">Ăn uống</td>
+			<td style="padding:6px;text-align:right;" th:text="${#numbers.formatDecimal(b.amount,0,'COMMA',0,'POINT')}">0</td>
+			<td style="padding:6px;" th:text="${b.currency}">VND</td>
+			<td style="padding:6px;" th:text="${b.startDate}">2025-11-01</td>
+			<td style="padding:6px;" th:text="${b.endDate}">2025-11-30</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
 </body>
 </html>
