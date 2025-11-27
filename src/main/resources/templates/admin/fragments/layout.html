@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense Manager - Admin</title>
+    <title>Expense Manager - Administration</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -25,7 +25,7 @@
         #sidebar {
             min-width: 250px;
             max-width: 250px;
-            background: #343a40; /* Màu tối cho sidebar */
+            background: #343a40; /* Dark color for sidebar */
             color: #fff;
             transition: all 0.3s;
         }
@@ -76,24 +76,25 @@
 
             <li>
                 <a th:href="@{/admin/users}" class="nav-link">
-                    <i class="fas fa-users"></i> Quản lý User
+                    <i class="fas fa-users"></i> User Management
                 </a>
             </li>
 
             <li>
                 <a th:href="@{/admin/categories}" class="nav-link">
-                    <i class="fas fa-folder"></i> Danh mục
+                    <i class="fas fa-folder"></i> Categories
                 </a>
             </li>
 
             <li>
                 <a href="#" class="nav-link">
-                    <i class="fas fa-file-invoice-dollar"></i> Chi tiêu (Global)
+                    <i class="fas fa-file-invoice-dollar"></i> Expenses (Global)
                 </a>
             </li>
+
             <li>
                 <a href="#" class="nav-link">
-                    <i class="fas fa-chart-line"></i> Báo cáo
+                    <i class="fas fa-chart-line"></i> Reports & Analytics
                 </a>
             </li>
         </ul>
@@ -105,7 +106,7 @@
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="sidebarCollapse">
                     <i class="fas fa-bars"></i>
                 </button>
-                <span class="ms-2 fw-bold text-secondary">Hệ thống Quản lý Chi tiêu</span>
+                <span class="ms-2 fw-bold text-secondary">Expense Management System</span>
             </div>
 
             <div class="d-flex align-items-center">
@@ -116,7 +117,7 @@
 
                 <form th:action="@{/logout}" method="post">
                     <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </form>
             </div>
@@ -128,6 +129,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.getElementById('sidebarCollapse')?.addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
+    });
+</script>
 
 
 </body>

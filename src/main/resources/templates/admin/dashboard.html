@@ -2,23 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{admin/fragments/layout :: layout(~{::content})}">
 <head>
+    <!-- Chart.js will load via CDN in the layout or here if needed -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div th:fragment="content">
 
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Dashboard (Quản trị hệ thống)</h1>
+        <h1 class="h2">Dashboard (System Administration)</h1>
     </div>
 
+    <!-- 1. STATISTICAL CARDS -->
     <div class="row">
+        <!-- Card 1: Total Users -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Tổng Người Dùng</div>
+                                Total Users</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${totalUsers}">0</div>
                         </div>
                         <div class="col-auto">
@@ -29,13 +32,14 @@
             </div>
         </div>
 
+        <!-- Card 2: Categories -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Danh Mục</div>
+                                Categories Count</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${totalCategories}">0</div>
                         </div>
                         <div class="col-auto">
@@ -46,13 +50,14 @@
             </div>
         </div>
 
+        <!-- Card 3: Expenses Transactions -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Giao dịch Chi</div>
+                                Expense Transactions</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${totalExpenses}">0</div>
                         </div>
                         <div class="col-auto">
@@ -63,13 +68,14 @@
             </div>
         </div>
 
+        <!-- Card 4: Income Transactions -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Giao dịch Thu</div>
+                                Income Transactions</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${totalIncomes}">0</div>
                         </div>
                         <div class="col-auto">
@@ -81,11 +87,13 @@
         </div>
     </div>
 
+    <!-- 2. CHARTS AND INFORMATION -->
     <div class="row">
+        <!-- Pie Chart: Transaction Distribution -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Phân bố Giao dịch Hệ thống</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">System Transaction Distribution</h6>
                 </div>
                 <div class="card-body">
                     <div class="chart-pie pt-4 pb-2">
@@ -95,39 +103,46 @@
             </div>
         </div>
 
+        <!-- System Info Card -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Thông tin hệ thống</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">System Information</h6>
                 </div>
                 <div class="card-body">
-                    <p>Chào mừng bạn đến với trang quản trị <strong>Expense Manager</strong>.</p>
-                    <p>Tại đây bạn có thể quản lý:</p>
+                    <p>Welcome to the <strong>Expense Manager</strong> administration page.</p>
+                    <p>From here you can manage:</p>
                     <ul>
-                        <li><a th:href="@{/admin/users}">Quản lý người dùng</a></li>
-                        <li><a th:href="@{/admin/categories}">Quản lý danh mục chung</a></li>
-                        <li>Xem báo cáo hoạt động hệ thống</li>
+                        <li><a th:href="@{/admin/users}">User Management</a></li>
+                        <li><a th:href="@{/admin/categories}">Global Category Management</a></li>
+                        <li>View system activity reports and analytics.</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 3. CHART.JS SCRIPT -->
     <script th:inline="javascript">
-        // Lấy dữ liệu từ Model
+        // Retrieve data from the Model
         var expenseCount = [[${totalExpenses}]];
         var incomeCount = [[${totalIncomes}]];
 
-        // Vẽ biểu đồ tròn
+        // Default to 0 if data is null (prevents chart errors)
+        expenseCount = expenseCount === null ? 0 : expenseCount;
+        incomeCount = incomeCount === null ? 0 : incomeCount;
+
+        // Draw the Doughnut Chart
         var ctx = document.getElementById("myPieChart");
         var myPieChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ["Chi tiêu", "Thu nhập"],
+                // Labels translated to English
+                labels: ["Expenses", "Incomes"],
                 datasets: [{
                     data: [expenseCount, incomeCount],
-                    backgroundColor: ['#4e73df', '#1cc88a'],
-                    hoverBackgroundColor: ['#2e59d9', '#17a673'],
+                    backgroundColor: ['#e74a3b', '#1cc88a'], // Using red/green colors
+                    hoverBackgroundColor: ['#d5382b', '#17a673'],
                     hoverBorderColor: "rgba(234, 236, 244, 1)",
                 }],
             },

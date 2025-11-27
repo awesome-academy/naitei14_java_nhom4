@@ -4,9 +4,14 @@ import com.group4.expense_manager.dto.request.UserRegistrationRequest;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.repository.UserRepository;
 import com.group4.expense_manager.service.UserService;
+import com.group4.expense_manager.dto.request.AdminUserFormRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import com.group4.expense_manager.exception.ResourceNotFoundException;
 
 import java.util.Optional;
 
@@ -20,6 +25,12 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public Page<User> getUsers(String keyword, Boolean isActive, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size); // Page bắt đầu từ 0
+        return userRepository.searchUsers(keyword, isActive, pageable);
     }
 
     @Override
@@ -48,5 +59,34 @@ public class UserServiceImpl implements UserService {
         }
 
         return userRepository.save(newUser);
+    }
+    @Override
+    public User getUserById(Integer id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Not found user id: " + id));
+    }
+
+    @Override
+    public void saveAdminUser(AdminUserFormRequest dto) {
+        User user;
+        if (dto.getId() != null) {
+            user = getUserById(dto.getId());
+        } else {
+            user = new User();
+        }
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setRole(dto.getRole());
+        user.setIsActive(dto.isActive());
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUser(Integer id) {
+        userRepository.deleteById(id);
     }
 }
