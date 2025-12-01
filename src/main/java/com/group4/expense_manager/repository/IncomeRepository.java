@@ -6,9 +6,12 @@ import com.group4.expense_manager.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable; // SỬA: Import đúng thư viện này
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Repository
 public interface IncomeRepository extends JpaRepository<Income, Integer> {
@@ -33,6 +36,31 @@ public interface IncomeRepository extends JpaRepository<Income, Integer> {
             LocalDate end,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT i FROM Income i
+        WHERE i.user = :user
+          AND (:category IS NULL OR i.category = :category)
+          AND (:start IS NULL OR i.incomeDate >= :start)
+          AND (:end IS NULL OR i.incomeDate <= :end)
+          AND (
+               :keyword IS NULL OR :keyword = '' OR
+               LOWER(i.source) LIKE CONCAT('%', LOWER(:keyword), '%') OR
+               (i.note IS NOT NULL AND LOWER(i.note) LIKE CONCAT('%', LOWER(:keyword), '%'))
+          )
+        """)
+    Page<Income> searchIncomes(
+            @Param("user") User user,
+            @Param("category") Category category,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    //Tìm các income recurring mà tới hạn sinh thêm giao dịch
+    List<Income> findByIsRecurringTrueAndNextOccurrenceDateNotNullAndNextOccurrenceDateLessThanEqual(LocalDate date);
+
 
     // --- ADMIN METHODS ---
 

@@ -1,10 +1,8 @@
 package com.group4.expense_manager.service.impl;
 
 import com.group4.expense_manager.dto.request.IncomeRequest;
-import com.group4.expense_manager.entity.Category;
-import com.group4.expense_manager.entity.CategoryType;
-import com.group4.expense_manager.entity.Income;
-import com.group4.expense_manager.entity.User;
+import com.group4.expense_manager.entity.*;
+import com.group4.expense_manager.exception.ResourceNotFoundException;
 import com.group4.expense_manager.repository.CategoryRepository;
 import com.group4.expense_manager.repository.IncomeRepository;
 import com.group4.expense_manager.service.IncomeService;
@@ -34,37 +32,37 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public Page<Income> filterIncomesOfUser(User user, Integer categoryId, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
-        // Không cần parse String -> LocalDate nữa vì Controller đã làm rồi
-
+    public Page<Income> filterIncomesOfUser(
+            User user,
+            Integer categoryId,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String keyword,
+            Pageable pageable
+    ) {
         Category category = null;
         if (categoryId != null) {
-            category = categoryRepository.findById(categoryId).orElse(null);
+            category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Danh mục không tồn tại"));
         }
 
-        // 1. Category + Date
-        if (category != null && fromDate != null && toDate != null) {
-            return incomeRepository.findByUserAndCategoryAndIncomeDateBetween(user, category, fromDate, toDate, pageable);
-        }
-        // 2. Category only
-        if (category != null) {
-            return incomeRepository.findByUserAndCategory(user, category, pageable);
-        }
-        // 3. Date only
-        if (fromDate != null && toDate != null) {
-            return incomeRepository.findByUserAndIncomeDateBetween(user, fromDate, toDate, pageable);
-        }
-
-        // 4. No filter
-        return incomeRepository.findByUser(user, pageable);
+        return incomeRepository.searchIncomes(
+                user,
+                category,
+                fromDate,
+                toDate,
+                keyword,
+                pageable
+        );
     }
 
     @Override
     public Income getIncomeOfUser(Integer incomeId, User user) {
         Income income = incomeRepository.findById(incomeId)
-                .orElseThrow(() -> new RuntimeException("Khoản thu nhập không tồn tại"));
+                .orElseThrow(() -> new ResourceNotFoundException("Khoản thu nhập không tồn tại"));
 
         if (!income.getUser().getId().equals(user.getId())) {
+            // quyền truy cập sai -> để RuntimeException, GlobalExceptionHandler sẽ trả 400
             throw new RuntimeException("Bạn không có quyền truy cập khoản thu nhập này");
         }
         return income;
@@ -127,15 +125,30 @@ public class IncomeServiceImpl implements IncomeService {
             }
             income.setRecurringInterval(request.getRecurringInterval());
             income.setRecurringEndDate(request.getRecurringEndDate());
+
+            // Nếu là income mới hoặc trước đó không recurring → set nextOccurrenceDate từ incomeDate
+            if (income.getId() == null || !income.isRecurring()) {
+                income.setNextOccurrenceDate(
+                        calculateNextOccurrenceDate(request.getIncomeDate(), request.getRecurringInterval())
+                );
+            } else {
+                // Nếu user đổi incomeDate hoặc interval, ta cũng có thể recal lại:
+                income.setNextOccurrenceDate(
+                        calculateNextOccurrenceDate(request.getIncomeDate(), request.getRecurringInterval())
+                );
+            }
+
         } else {
+            // Không recurring nữa
             income.setRecurringInterval(null);
             income.setRecurringEndDate(null);
+            income.setNextOccurrenceDate(null);
         }
     }
 
     private Category validateCategory(Integer categoryId, User user) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+                .orElseThrow(() -> new ResourceNotFoundException("Danh mục không tồn tại"));
 
         if (category.getType() != CategoryType.income) {
             throw new RuntimeException("Danh mục này không phải loại Thu nhập (Income).");
@@ -147,4 +160,17 @@ public class IncomeServiceImpl implements IncomeService {
 
         return category;
     }
+
+    private LocalDate calculateNextOccurrenceDate(LocalDate baseDate, RecurringInterval interval) {
+        if (baseDate == null || interval == null) return null;
+
+        return switch (interval) {
+            case DAILY -> baseDate.plusDays(1);
+            case WEEKLY -> baseDate.plusWeeks(1);
+            case MONTHLY -> baseDate.plusMonths(1);
+            case YEARLY -> baseDate.plusYears(1);
+        };
+    }
+
 }
+

@@ -1,4 +1,4 @@
-package com.group4.expense_manager.controller;
+package com.group4.expense_manager.controller.client;
 
 import com.group4.expense_manager.dto.request.IncomeRequest;
 import com.group4.expense_manager.dto.response.IncomeResponse;
@@ -38,14 +38,14 @@ public class IncomeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer categoryId,
-
             //Tự động convert String (yyyy-MM-dd) sang LocalDate
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String keyword
     ) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Income> incomes = incomeService.filterIncomesOfUser(user, categoryId, fromDate, toDate, pageable);
+        Page<Income> incomes = incomeService.filterIncomesOfUser(user, categoryId, fromDate, toDate, keyword, pageable);
 
         // Trả về 200 OK
         return ResponseEntity.ok(incomes.map(incomeMapper::toResponse));

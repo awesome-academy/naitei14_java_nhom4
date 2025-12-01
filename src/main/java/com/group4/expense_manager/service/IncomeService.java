@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public interface IncomeService {
     Page<Income> listIncomesOfUser(User user, Pageable pageable);
 
-    Page<Income> filterIncomesOfUser(User user, Integer categoryId, LocalDate fromDate, LocalDate toDate, Pageable pageable);
+    Page<Income> filterIncomesOfUser(User user, Integer categoryId, LocalDate fromDate, LocalDate toDate, String keyword, Pageable pageable);
 
     Income getIncomeOfUser(Integer incomeId, User user);
 
