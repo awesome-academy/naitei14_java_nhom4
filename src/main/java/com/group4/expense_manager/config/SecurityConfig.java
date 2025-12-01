@@ -41,6 +41,7 @@ public class SecurityConfig {
 
                         // admin namespace
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/expenses/**").permitAll()
 
                         // mọi request khác cần login
                         .anyRequest().authenticated()

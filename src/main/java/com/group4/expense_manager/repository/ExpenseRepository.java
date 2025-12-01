@@ -17,6 +17,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
     Page<Expense> findByUser(User user, Pageable pageable);
 
+    Page<Expense> findByUserAndDescriptionContainingAndAmountBetween(User user, String description, Double minAmount, Double maxAmount, Pageable pageable);
+
+    Page<Expense> findByUserAndAmountBetween(User user, Double minAmount, Double maxAmount, Pageable pageable);
+
     Page<Expense> findByUserAndCategory(User user, Category category, Pageable pageable);
 
     Page<Expense> findByUserAndExpenseDateBetween(User user, LocalDate fromDate, LocalDate toDate, Pageable pageable);
@@ -26,4 +30,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     Optional<Expense> findByIdAndUser(Integer id, User user);
 
     List<Expense> findByUserAndCategory(User user, Category category);
+
+    List<Expense> findByUser(User user);
+
+    long countByUser(User user);
 }
