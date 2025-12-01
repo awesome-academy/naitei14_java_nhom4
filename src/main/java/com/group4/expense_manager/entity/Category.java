@@ -34,6 +34,9 @@ public class Category {
     @Lob
     private String description;
 
+    @Column
+    private String icon; // Lưu trữ đường dẫn đến icon
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CategoryType type;
