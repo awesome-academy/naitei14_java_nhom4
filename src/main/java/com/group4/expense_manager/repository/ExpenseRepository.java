@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
@@ -31,6 +33,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
     List<Expense> findByUserAndCategory(User user, Category category);
 
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e WHERE e.user.id = :userId")
+    double sumAmountByUserId(@Param("userId") Integer userId);
     List<Expense> findByUser(User user);
 
     long countByUser(User user);

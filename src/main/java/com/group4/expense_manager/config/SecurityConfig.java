@@ -21,6 +21,9 @@ public class SecurityConfig {
     @Autowired
     private ApiAuthenticationEntryPoint apiAuthenticationEntryPoint;
 
+    @Autowired
+    private CustomJwtAuthenticationConverter customJwtAuthenticationConverter;
+
     @Bean
     @Order(1)
     public SecurityFilterChain authChain(HttpSecurity http) throws Exception {
@@ -28,6 +31,11 @@ public class SecurityConfig {
                 .securityMatcher("/api/auth/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(apiAuthenticationEntryPoint)
+                )
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
@@ -42,13 +50,17 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
+                        .jwt(jwt -> jwt
+                                .jwtAuthenticationConverter(customJwtAuthenticationConverter)
+                        )
                         .authenticationEntryPoint(apiAuthenticationEntryPoint)
                 );
 
