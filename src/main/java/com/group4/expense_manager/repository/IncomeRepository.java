@@ -4,9 +4,11 @@ import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.Income;
 import com.group4.expense_manager.entity.User;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable; // SỬA: Import đúng thư viện này
+import org.springframework.data.domain.Pageable; 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 
@@ -25,7 +27,7 @@ public interface IncomeRepository extends JpaRepository<Income, Integer> {
     // Lọc theo user + khoảng thời gian
     Page<Income> findByUserAndIncomeDateBetween(User user, LocalDate start, LocalDate end, Pageable pageable);
 
-    // Lọc theo user + category + khoảng thời gian
+
     Page<Income> findByUserAndCategoryAndIncomeDateBetween(
             User user,
             Category category,
@@ -41,4 +43,8 @@ public interface IncomeRepository extends JpaRepository<Income, Integer> {
 
     // Admin: filter theo date range (bất kể user nào)
     Page<Income> findByIncomeDateBetween(LocalDate start, LocalDate end, Pageable pageable);
+
+    // --- AGGREGATION ---
+    @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.user.id = :userId")
+    double sumAmountByUserId(@Param("userId") Integer userId);
 }
