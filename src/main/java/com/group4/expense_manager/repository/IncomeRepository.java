@@ -51,6 +51,11 @@ public interface IncomeRepository extends JpaRepository<Income, Integer> {
     // Admin: filter theo date range (bất kể user nào)
     Page<Income> findByIncomeDateBetween(LocalDate start, LocalDate end, Pageable pageable);
 
+    // Tổng thu nhập user trong khoảng thời gian (COALESCE để tránh null)
+    @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.user = :user AND i.incomeDate BETWEEN :start AND :end")
+    BigDecimal sumByUserAndIncomeDateBetween(@Param("user") User user,
+                                             @Param("start") LocalDate start,
+                                             @Param("end") LocalDate end);
     // --- AGGREGATION ---
     @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.user.id = :userId")
     double sumAmountByUserId(@Param("userId") Integer userId);
