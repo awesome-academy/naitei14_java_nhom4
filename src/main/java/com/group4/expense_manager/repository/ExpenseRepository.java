@@ -19,6 +19,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
     Page<Expense> findByUser(User user, Pageable pageable);
 
+    Page<Expense> findByUserAndDescriptionContainingAndAmountBetween(User user, String description, Double minAmount, Double maxAmount, Pageable pageable);
+
+    Page<Expense> findByUserAndAmountBetween(User user, Double minAmount, Double maxAmount, Pageable pageable);
+
     Page<Expense> findByUserAndCategory(User user, Category category, Pageable pageable);
 
     Page<Expense> findByUserAndExpenseDateBetween(User user, LocalDate fromDate, LocalDate toDate, Pageable pageable);
@@ -31,4 +35,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e WHERE e.user.id = :userId")
     double sumAmountByUserId(@Param("userId") Integer userId);
+    List<Expense> findByUser(User user);
+
+    long countByUser(User user);
 }

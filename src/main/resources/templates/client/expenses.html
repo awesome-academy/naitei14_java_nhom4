@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::body})}">
+
+
+<body>
+<link rel="stylesheet" th:href="@{/css/expenses.css}">
+<div class="container">
+
+    <!-- Header Section -->
+    <div class="header-section">
+        <h2>� Quản lý Chi tiêu</h2>
+        <a th:href="@{/expenses/add}" class="btn-add-expense">
+            <span>➕</span> Thêm chi tiêu mới
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-info">
+                <h3>Tổng chi tiêu</h3>
+                <div class="stat-value" th:text="${totalExpenses}">0</div>
+                <small style="color: #9ca3af;">khoản</small>
+            </div>
+            <div class="stat-icon">📊</div>
+        </div>
+
+        <div class="stat-card amount">
+            <div class="stat-info">
+                <h3>Tổng số tiền</h3>
+                <div class="stat-value" style="font-size: 1.5rem; color: #ef4444;"
+                     th:text="${totalAmount}">0 ₫</div>
+                <small style="color: #9ca3af;">VNĐ</small>
+            </div>
+            <div class="stat-icon">💸</div>
+        </div>
+
+        <div class="stat-card average">
+            <div class="stat-info">
+                <h3>Trung bình</h3>
+                <div class="stat-value" style="font-size: 1.5rem; color: #8b5cf6;"
+                     th:text="${averageAmount}">0 ₫</div>
+                <small style="color: #9ca3af;">mỗi khoản</small>
+            </div>
+            <div class="stat-icon">📈</div>
+        </div>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="filters-card">
+        <h3 class="filters-title">🔍 Tìm kiếm & Lọc</h3>
+        <form method="get" th:action="@{/expenses}">
+            <div class="filters">
+                <input type="text" name="keyword" placeholder="🔎 Tìm theo tên..." th:value="${keyword}" />
+
+                <input type="date" name="from" th:value="${from}" />
+
+                <select name="categoryId">
+                    <option value="">📁 Tất cả danh mục</option>
+                    <option th:each="c : ${categories}"
+                            th:value="${c.id}"
+                            th:text="${c.name}"
+                            th:selected="${c.id == categoryId}">
+                    </option>
+                </select>
+
+                <input type="number" name="min" placeholder="💵 Số tiền tối thiểu" th:value="${min}" />
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn-filter">Lọc kết quả</button>
+                <button type="reset" class="btn-reset" onclick="window.location.href='/expenses'">Xóa bộ lọc</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Card -->
+    <div class="table-card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>� Tên chi tiêu</th>
+                    <th>� Số tiền</th>
+                    <th>� Ngày</th>
+                    <th>� Danh mục</th>
+                    <th>📎 Đính kèm</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(expenses)}">
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <h3>Chưa có chi tiêu nào</h3>
+                            <p>Bắt đầu thêm chi tiêu đầu tiên của bạn</p>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr th:each="e : ${expenses}"
+                    th:onclick="|window.location='/expenses/' + ${e.id}|">
+                    <td><strong th:text="${e.name}"></strong></td>
+                    <td class="amount-cell" th:text="${e.amount}"></td>
+                    <td th:text="${#temporals.format(e.expenseDate, 'dd/MM/yyyy')}"></td>
+
+                    <td>
+                        <span class="category-badge"
+                              th:classappend="${'category-' + #strings.toLowerCase(e.category.name)}"
+                              th:text="${e.category.name}">
+                        </span>
+                    </td>
+
+                    <td class="attachment-icon">
+                        <span th:if="${e.attachment != null}">📎</span>
+                        <span th:unless="${e.attachment != null}" style="color: #d1d5db;">➖</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:if="${currentPage > 0}"
+               th:href="@{/expenses(page=${currentPage - 1}, keyword=${keyword}, from=${from}, to=${to}, categoryId=${categoryId}, min=${min}, max=${max})}">
+                ⬅ Trang trước
+            </a>
+
+            <span>Trang <strong th:text="${currentPage + 1}"></strong> /
+                <strong th:text="${totalPages}"></strong></span>
+
+            <a th:if="${currentPage < totalPages - 1}"
+               th:href="@{/expenses(page=${currentPage + 1}, keyword=${keyword}, from=${from}, to=${to}, categoryId=${categoryId}, min=${min}, max=${max})}">
+                Trang sau ➡
+            </a>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
