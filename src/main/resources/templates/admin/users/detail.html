@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments/layout :: layout(~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <h2 class="mb-4">User Details</h2>
+
+    <div class="card mt-3 shadow" style="max-width: 500px;">
+        <div class="card-header bg-primary text-white">
+            <h4 th:text="${user.name}">User Name</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>ID:</strong> <span th:text="${user.id}"></span></p>
+            <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+            <p><strong>Role:</strong> <span th:text="${user.role}"></span></p>
+
+            <p><strong>Default Currency:</strong>
+                <span th:text="${user.defaultCurrency}"></span>
+            </p>
+
+            <p><strong>Status:</strong>
+                <span th:if="${user.enabled}" class="badge bg-success">Active</span>
+                <span th:unless="${user.enabled}" class="badge bg-secondary">Inactive</span>
+            </p>
+
+            <p><strong>Created At:</strong> <span th:text="${user.createdAt}"></span></p>
+            <p><strong>Last Updated:</strong> <span th:text="${user.updatedAt}"></span></p>
+        </div>
+        <div class="card-footer">
+            <a th:href="@{/admin/users}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+            <a th:href="@{'/admin/users/edit/' + ${user.id}}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Edit User
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

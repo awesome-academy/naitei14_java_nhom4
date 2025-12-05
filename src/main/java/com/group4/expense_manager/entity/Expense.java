@@ -32,6 +32,10 @@ public class Expense {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    // NEW — trùng với DB
+    @Column(nullable = false)
+    private String name;
+
     @Column(nullable = false)
     private String description;
 
@@ -47,6 +51,19 @@ public class Expense {
     @Lob
     private String note;
 
+    // NEW — trùng DB: is_recurring BIT
+    @Column(name = "is_recurring", nullable = false)
+    private Boolean isRecurring = false;
+
+    // NEW — trùng DB: recurring_end_date DATE
+    @Column(name = "recurring_end_date")
+    private LocalDate recurringEndDate;
+
+    // NEW — trùng DB: recurring_interval ENUM
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recurring_interval")
+    private RecurringInterval recurringInterval;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -54,4 +71,23 @@ public class Expense {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    // ENUM cho recurring_interval — DAILY / MONTHLY / WEEKLY / YEARLY
+    public enum RecurringInterval {
+        DAILY,
+        MONTHLY,
+        WEEKLY,
+        YEARLY
+    }
+
+    @Column(name = "attachment")
+    private String attachment;
+
+    public String getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(String attachment) {
+        this.attachment = attachment;
+    }
 }
