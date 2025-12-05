@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::body})}">
+<body>
+
+<div class="container">
+    <h2>Expense Detail</h2>
+
+    <div class="detail-card">
+        <p><strong>Name:</strong> <span th:text="${expense.name}"></span></p>
+        <p><strong>Amount:</strong> <span th:text="${expense.amount}"></span></p>
+        <p><strong>Date:</strong> <span th:text="${expense.date}"></span></p>
+        <p><strong>Category:</strong> <span th:text="${expense.category.name}"></span></p>
+        <p><strong>Note:</strong></p>
+        <p th:text="${expense.note}"></p>
+
+        <div th:if="${expense.attachment != null}">
+            <p><strong>Attachment:</strong></p>
+            <img th:src="@{/uploads/{file}(file=${expense.attachment})}"
+                 alt="Attachment"
+                 style="max-width:300px; border-radius:8px;" />
+        </div>
+    </div>
+
+    <div class="actions">
+        <a th:href="@{'/expenses/edit/' + ${expense.id}}" class="btn-primary">Edit</a>
+        <a th:href="@{'/expenses/delete/' + ${expense.id}}"
+           class="btn-danger"
+           onclick="return confirm('Delete this expense?')">Delete</a>
+        <a th:href="@{/expenses}" class="btn">Back</a>
+    </div>
+</div>
+
+</body>
+</html>

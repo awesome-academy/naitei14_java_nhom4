@@ -4,9 +4,11 @@ import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.Income;
 import com.group4.expense_manager.entity.User;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable; // SỬA: Import đúng thư viện này
+import org.springframework.data.domain.Pageable; 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -54,4 +56,7 @@ public interface IncomeRepository extends JpaRepository<Income, Integer> {
     BigDecimal sumByUserAndIncomeDateBetween(@Param("user") User user,
                                              @Param("start") LocalDate start,
                                              @Param("end") LocalDate end);
+    // --- AGGREGATION ---
+    @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.user.id = :userId")
+    double sumAmountByUserId(@Param("userId") Integer userId);
 }
