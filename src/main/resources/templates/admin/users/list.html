@@ -6,6 +6,8 @@
 
     <h2 class="mb-4">User Management</h2>
 
+   
+
     <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}">Success message.</div>
     <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}">Error message.</div>
 
@@ -33,7 +35,28 @@
             </a>
         </div>
     </form>
-
+     <div class="card mb-4 shadow-sm">
+        <div class="card-body py-3">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <a th:href="@{/admin/csv/users/export}" class="btn btn-outline-info">
+                        <i class="fas fa-file-export"></i> Export Users to CSV
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <form th:action="@{/admin/csv/users/import}" method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+                        <input type="file" name="file" class="form-control" accept=".csv" required style="max-width: 300px;">
+                        <button class="btn btn-primary flex-shrink-0" type="submit" title="Upload CSV">
+                            <i class="fas fa-file-import"></i> Import
+                        </button>
+                    </form>
+                    <small class="text-muted fst-italic d-block mt-1">
+                        Format: Name, Email, Password, Role, Active, Currency
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
         <tr>
