@@ -10,39 +10,22 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.math.BigDecimal;
-
 
 @Repository
 public interface IncomeRepository extends JpaRepository<Income, Integer> {
 
-    // --- CLIENT METHODS ---
+    // ========================================================================
+    // 1. CLIENT METHODS - SEARCH & FILTER (Dành cho người dùng thường)
+    // ========================================================================
 
-    // Lấy tất cả income của một user (hoặc Admin dùng để filter theo user)
-    // Lưu ý: Method này dùng chung cho cả Client (lấy của chính mình) và Admin (lọc user cụ thể)
-    Page<Income> findByUser(User user, Pageable pageable);
-
-    // Lọc theo user + category
-    Page<Income> findByUserAndCategory(User user, Category category, Pageable pageable);
-
-    // Lọc theo user + khoảng thời gian
-    Page<Income> findByUserAndIncomeDateBetween(User user, LocalDate start, LocalDate end, Pageable pageable);
-
-    // Dùng cho dashboard: lấy tất cả income trong tháng (không cần phân trang)
-    List<Income> findByUserAndIncomeDateBetween(User user, LocalDate start, LocalDate end);
-
-    // Lọc theo user + category + khoảng thời gian
-    Page<Income> findByUserAndCategoryAndIncomeDateBetween(
-            User user,
-            Category category,
-            LocalDate start,
-            LocalDate end,
-            Pageable pageable
-    );
-
+    /**
+     * Tìm kiếm nâng cao cho Client:
+     * - Lọc theo Category, Ngày tháng, Từ khóa (Source, Note).
+     * - Các tham số có thể NULL (nếu NULL thì bỏ qua điều kiện đó).
+     */
     @Query("""
         SELECT i FROM Income i
         WHERE i.user = :user
@@ -64,25 +47,65 @@ public interface IncomeRepository extends JpaRepository<Income, Integer> {
             Pageable pageable
     );
 
-    //Tìm các income recurring mà tới hạn sinh thêm giao dịch
-    List<Income> findByIsRecurringTrueAndNextOccurrenceDateNotNullAndNextOccurrenceDateLessThanEqual(LocalDate date);
+    // Lấy tất cả income của user (có phân trang)
+    Page<Income> findByUser(User user, Pageable pageable);
 
+    // ========================================================================
+    // 2. CLIENT METHODS - DASHBOARD & STATISTICS (Thống kê & Biểu đồ)
+    // ========================================================================
 
-    // --- ADMIN METHODS ---
+    // Lấy list income trong khoảng thời gian (Dùng cho biểu đồ, không phân trang)
+    List<Income> findByUserAndIncomeDateBetween(User user, LocalDate start, LocalDate end);
 
-    // Admin: lấy income của toàn hệ thống
-    // Page<Income> findAll(Pageable pageable); -> Method này đã có sẵn trong JpaRepository, không cần khai báo lại trừ khi muốn override.
-
-    // Admin: filter theo date range (bất kể user nào)
-    Page<Income> findByIncomeDateBetween(LocalDate start, LocalDate end, Pageable pageable);
-
-    // --- AGGREGATION ---
-    @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.user.id = :userId")
-    double sumAmountByUserId(@Param("userId") Integer userId);
-
-    // Tổng thu nhập user trong khoảng thời gian (COALESCE để tránh null)
+    // Tính tổng thu nhập của user trong khoảng thời gian (COALESCE để trả về 0 nếu null)
     @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.user = :user AND i.incomeDate BETWEEN :start AND :end")
     BigDecimal sumByUserAndIncomeDateBetween(@Param("user") User user,
                                              @Param("start") LocalDate start,
                                              @Param("end") LocalDate end);
+
+    // Tổng toàn bộ thu nhập từ trước đến nay của user
+    @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.user.id = :userId")
+    double sumAmountByUserId(@Param("userId") Integer userId);
+
+    // ========================================================================
+    // 3. SYSTEM METHODS - SCHEDULER (Tự động hóa)
+    // ========================================================================
+
+    /**
+     * Tìm các khoản thu nhập định kỳ (Recurring) cần được sinh ra vào ngày hôm nay.
+     * Logic: isRecurring = true AND nextOccurrenceDate <= today
+     */
+    List<Income> findByIsRecurringTrueAndNextOccurrenceDateNotNullAndNextOccurrenceDateLessThanEqual(LocalDate date);
+
+    // ========================================================================
+    // 4. ADMIN METHODS - GLOBAL MANAGEMENT (Quản trị viên)
+    // ========================================================================
+
+    /**
+     * Tìm kiếm nâng cao cho Admin (Toàn hệ thống):
+     * - userId: Nếu null -> lấy tất cả user. Nếu có -> lọc theo user đó.
+     * - keyword: Tìm trong Source hoặc Email người dùng.
+     */
+    @Query("""
+        SELECT i FROM Income i
+        WHERE (:userId IS NULL OR i.user.id = :userId)
+          AND (:startDate IS NULL OR i.incomeDate >= :startDate)
+          AND (:endDate IS NULL OR i.incomeDate <= :endDate)
+          AND (
+               :keyword IS NULL OR :keyword = '' OR
+               LOWER(i.source) LIKE CONCAT('%', LOWER(:keyword), '%') OR
+               LOWER(i.user.email) LIKE CONCAT('%', LOWER(:keyword), '%')
+          )
+        """)
+    Page<Income> searchIncomesForAdmin(
+            @Param("userId") Integer userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    // Filter nhanh theo khoảng thời gian (Bất kể user nào)
+    Page<Income> findByIncomeDateBetween(LocalDate start, LocalDate end, Pageable pageable);
+
 }
