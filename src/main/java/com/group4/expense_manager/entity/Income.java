@@ -47,7 +47,7 @@ public class Income {
     @Column(name = "income_date", nullable = false)
     private LocalDate incomeDate;
 
-    // --- MỚI: Thu nhập định kỳ (VD: Lương) ---
+    // ---Thu nhập định kỳ (VD: Lương) ---
     @Column(name = "is_recurring", nullable = false)
     private boolean isRecurring = false;
 
@@ -55,10 +55,14 @@ public class Income {
     @Column(name = "recurring_interval")
     private RecurringInterval recurringInterval;
 
+
+    @Column(name = "next_occurrence_date")
+    private LocalDate nextOccurrenceDate;
+
     @Column(name = "recurring_end_date")
     private LocalDate recurringEndDate;
 
-    @Lob
+    @Column(name = "note", length = 500)
     private String note;
 
     @CreationTimestamp
