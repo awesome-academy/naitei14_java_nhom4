@@ -7,6 +7,7 @@ import com.group4.expense_manager.entity.CategoryType;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.repository.BudgetRepository;
 import com.group4.expense_manager.repository.CategoryRepository;
+import com.group4.expense_manager.repository.UserRepository;
 import com.group4.expense_manager.service.BudgetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,11 +23,15 @@ public class BudgetServiceImpl implements BudgetService {
     
     private final BudgetRepository budgetRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
     
     @Autowired
-    public BudgetServiceImpl(BudgetRepository budgetRepository, CategoryRepository categoryRepository) {
+    public BudgetServiceImpl(BudgetRepository budgetRepository, 
+                             CategoryRepository categoryRepository,
+                             UserRepository userRepository) {
         this.budgetRepository = budgetRepository;
         this.categoryRepository = categoryRepository;
+        this.userRepository = userRepository;
     }
     
     @Override
@@ -129,5 +134,48 @@ public class BudgetServiceImpl implements BudgetService {
         }
         
         return category;
+    }
+    
+    // ========================================================================
+    // ADMIN METHODS
+    // ========================================================================
+    
+    @Override
+    public Page<Budget> getAllBudgetsForAdmin(Integer userId, LocalDate startDate, LocalDate endDate, 
+                                               String keyword, Pageable pageable) {
+        User user = null;
+        if (userId != null) {
+            user = userRepository.findById(userId).orElse(null);
+        }
+        return budgetRepository.searchBudgetsForAdmin(user, startDate, endDate, keyword, pageable);
+    }
+    
+    @Override
+    @Transactional
+    public void adminUpdateBudget(Budget budget) {
+        Budget existingBudget = budgetRepository.findById(budget.getId())
+                .orElseThrow(() -> new RuntimeException("Budget not found"));
+        
+        // Admin có thể cập nhật các field cần thiết
+        existingBudget.setAmount(budget.getAmount());
+        existingBudget.setCurrency(budget.getCurrency());
+        existingBudget.setStartDate(budget.getStartDate());
+        existingBudget.setEndDate(budget.getEndDate());
+        
+        if (budget.getCategory() != null && budget.getCategory().getId() != null) {
+            Category category = categoryRepository.findById(budget.getCategory().getId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            existingBudget.setCategory(category);
+        }
+        
+        budgetRepository.save(existingBudget);
+    }
+    
+    @Override
+    @Transactional
+    public void deleteBudgetById(Integer id) {
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Budget not found"));
+        budgetRepository.delete(budget);
     }
 }

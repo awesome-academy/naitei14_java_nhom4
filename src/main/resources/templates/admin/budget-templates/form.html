@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments/layout :: layout(~{::content})}">
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-primary">
+            <i class="fas fa-file-invoice-dollar"></i> 
+            <span th:if="${isEdit}">Chỉnh sửa Mẫu Ngân sách #<span th:text="${templateId}"></span></span>
+            <span th:unless="${isEdit}">Tạo Mẫu Ngân sách mới</span>
+        </h3>
+    </div>
+
+    <div class="card shadow" style="max-width: 900px; margin: 0 auto;">
+        <div class="card-body p-4">
+            <form th:action="${isEdit} ? @{'/admin/budget-templates/update/' + ${templateId}} : @{/admin/budget-templates/save}" 
+                  th:object="${template}" method="post">
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tên mẫu ngân sách <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{name}" class="form-control" 
+                               placeholder="VD: Ngân sách tháng 1" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tháng <span class="text-danger">*</span></label>
+                        <select th:field="*{month}" class="form-select" required>
+                            <option value="">-- Chọn tháng --</option>
+                            <option th:each="m : ${#numbers.sequence(1, 12)}"
+                                    th:value="${m}"
+                                    th:text="'Tháng ' + ${m}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Mô tả</label>
+                    <textarea th:field="*{description}" class="form-control" rows="3" 
+                              placeholder="Mô tả chi tiết về mẫu ngân sách này..."></textarea>
+                </div>
+
+                <hr class="my-4 text-muted">
+
+                <h5 class="text-info mb-3"><i class="fas fa-list"></i> Danh mục & Số tiền mặc định</h5>
+                <p class="text-muted small mb-3">Thêm các danh mục và số tiền ngân sách mặc định cho mẫu này.</p>
+
+                <div id="itemsContainer">
+                    <!-- Hiển thị items hiện có (khi edit) -->
+                    <th:block th:if="${isEdit and templateEntity != null and templateEntity.items != null}">
+                        <div th:each="item, iterStat : ${templateEntity.items}" class="row mb-2 item-row">
+                            <div class="col-md-5">
+                                <select name="categoryIds" class="form-select" required>
+                                    <option value="">-- Chọn danh mục --</option>
+                                    <option th:each="cat : ${categories}"
+                                            th:value="${cat.id}"
+                                            th:text="${cat.name}"
+                                            th:selected="${item.category != null and cat.id == item.category.id}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <input type="number" name="amounts" class="form-control" 
+                                           th:value="${item.defaultAmount}" 
+                                           placeholder="Số tiền" min="0" step="1000" required>
+                                    <span class="input-group-text">VND</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-outline-danger w-100" onclick="removeItem(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+
+                <button type="button" class="btn btn-outline-primary mb-4" onclick="addItem()">
+                    <i class="fas fa-plus"></i> Thêm danh mục
+                </button>
+
+                <hr class="my-4 text-muted">
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a th:href="@{/admin/budget-templates}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Hủy bỏ
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> 
+                        <span th:if="${isEdit}">Lưu thay đổi</span>
+                        <span th:unless="${isEdit}">Tạo mẫu</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var categories = /*[[${categories}]]*/ [];
+        
+        function addItem() {
+            var container = document.getElementById('itemsContainer');
+            var row = document.createElement('div');
+            row.className = 'row mb-2 item-row';
+            
+            var selectOptions = '<option value="">-- Chọn danh mục --</option>';
+            categories.forEach(function(cat) {
+                selectOptions += '<option value="' + cat.id + '">' + cat.name + '</option>';
+            });
+            
+            row.innerHTML = `
+                <div class="col-md-5">
+                    <select name="categoryIds" class="form-select" required>
+                        ${selectOptions}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="number" name="amounts" class="form-control" placeholder="Số tiền" min="0" step="1000" required>
+                        <span class="input-group-text">VND</span>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger w-100" onclick="removeItem(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(row);
+        }
+        
+        function removeItem(btn) {
+            btn.closest('.item-row').remove();
+        }
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>
