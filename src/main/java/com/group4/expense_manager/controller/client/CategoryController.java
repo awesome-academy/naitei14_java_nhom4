@@ -41,6 +41,7 @@ public class CategoryController {
 			@RequestParam(defaultValue = "10") int size,
 			@RequestParam(required = false) CategoryType type
 	) {
+		System.out.println("Listing categories for user: " + user.getUsername());
 		Pageable pageable = PageRequest.of(page, size);
 		Page<Category> categories = categoryService.listCategories(user, type, pageable);
 		return ResponseEntity.ok(categories.map(categoryMapper::toResponse));
@@ -63,10 +64,11 @@ public class CategoryController {
 			@Valid @ModelAttribute CreateCategoryRequest request,
 			@RequestPart(value = "iconFile", required = false) MultipartFile iconFile
 	) {
+		String iconUrl = "";
 		if (iconFile != null && !iconFile.isEmpty()) {
-			String iconUrl = cloudinaryService.uploadIcon(iconFile, "categories");
-			request.setIcon(iconUrl);
+			iconUrl = cloudinaryService.uploadIcon(iconFile, "categories");
 		}
+		request.setIcon(iconUrl);
 		Category category = categoryService.createCategory(user, request);
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
