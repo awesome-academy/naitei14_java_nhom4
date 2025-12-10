@@ -69,8 +69,16 @@ public class BudgetTemplateServiceImpl implements BudgetTemplateService {
         
         // Tạo items nếu có
         if (request.getItems() != null && !request.getItems().isEmpty()) {
+            Set<Integer> categoryIds = new HashSet<>();
             Set<BudgetTemplateItem> items = new HashSet<>();
+            
             for (BudgetTemplateRequest.BudgetTemplateItemRequest itemRequest : request.getItems()) {
+                // Kiểm tra duplicate category trong cùng request
+                if (categoryIds.contains(itemRequest.getCategoryId())) {
+                    throw new RuntimeException("Không thể thêm cùng một danh mục nhiều lần vào mẫu ngân sách");
+                }
+                categoryIds.add(itemRequest.getCategoryId());
+                
                 Category category = validateCategory(itemRequest.getCategoryId());
                 
                 BudgetTemplateItem item = new BudgetTemplateItem();
@@ -96,25 +104,38 @@ public class BudgetTemplateServiceImpl implements BudgetTemplateService {
         template.setMonth(request.getMonth());
         template.setDescription(request.getDescription());
         
-        // Xóa items cũ
-        if (template.getItems() != null) {
-            template.getItems().clear();
-        }
-        
-        // Tạo items mới nếu có
+        // Chỉ update items khi có items trong request
         if (request.getItems() != null && !request.getItems().isEmpty()) {
-            Set<BudgetTemplateItem> items = new HashSet<>();
+            // Clear collection cũ thay vì set collection mới (để tránh lỗi orphanRemoval)
+            if (template.getItems() != null) {
+                template.getItems().clear();
+                // Flush để đảm bảo DELETE được thực thi ngay trước khi INSERT
+                templateRepository.flush();
+            } else {
+                template.setItems(new HashSet<>());
+            }
+            
+            // Add items mới vào collection đã được Hibernate track
+            Set<Integer> categoryIds = new HashSet<>();
+            
             for (BudgetTemplateRequest.BudgetTemplateItemRequest itemRequest : request.getItems()) {
+                if (categoryIds.contains(itemRequest.getCategoryId())) {
+                    throw new RuntimeException("Không thể thêm cùng một danh mục nhiều lần vào mẫu ngân sách");
+                }
+                categoryIds.add(itemRequest.getCategoryId());
+                
                 Category category = validateCategory(itemRequest.getCategoryId());
                 
                 BudgetTemplateItem item = new BudgetTemplateItem();
                 item.setTemplate(template);
                 item.setCategory(category);
                 item.setDefaultAmount(itemRequest.getDefaultAmount());
-                items.add(item);
+                
+                // Add vào collection thay vì set collection mới
+                template.getItems().add(item);
             }
-            template.setItems(items);
         }
+        // Nếu không có items trong request → GIỮ NGUYÊN items cũ, không làm gì cả
         
         return templateRepository.save(template);
     }

@@ -188,7 +188,17 @@ public class AdminBudgetTemplateController {
     public String viewDetail(@PathVariable Integer id, Model model, RedirectAttributes ra) {
         try {
             BudgetTemplate template = budgetTemplateService.getTemplate(id);
+            
+            // Tính tổng ngân sách
+            java.math.BigDecimal totalAmount = java.math.BigDecimal.ZERO;
+            if (template.getItems() != null) {
+                totalAmount = template.getItems().stream()
+                    .map(item -> item.getDefaultAmount())
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            }
+            
             model.addAttribute("template", template);
+            model.addAttribute("totalAmount", totalAmount);
             model.addAttribute("pageTitle", "Chi tiết Mẫu Ngân sách");
             return "admin/budget-templates/detail";
         } catch (Exception e) {

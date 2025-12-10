@@ -60,9 +60,7 @@
                     <p class="text-muted mb-3">Danh mục ngân sách</p>
                     
                     <h3 class="text-success mb-0">
-                        <span th:if="${template.items != null}"
-                              th:text="${#numbers.formatDecimal(template.items.![defaultAmount].stream().reduce(T(java.math.BigDecimal).ZERO, (a, b) -> a.add(b)), 0, 'COMMA', 0, 'POINT')}">0</span>
-                        <span th:unless="${template.items != null}">0</span>
+                        <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')}">0</span>
                         <small class="fs-6">VND</small>
                     </h3>
                     <p class="text-muted">Tổng ngân sách mặc định</p>

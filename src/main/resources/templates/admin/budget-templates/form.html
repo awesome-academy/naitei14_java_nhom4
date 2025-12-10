@@ -44,6 +44,12 @@
                 <h5 class="text-info mb-3"><i class="fas fa-list"></i> Danh mục & Số tiền mặc định</h5>
                 <p class="text-muted small mb-3">Thêm các danh mục và số tiền ngân sách mặc định cho mẫu này.</p>
 
+                <!-- Template for category options (hidden) -->
+                <select id="categoryTemplate" style="display: none;">
+                    <option value="">-- Chọn danh mục --</option>
+                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                </select>
+
                 <div id="itemsContainer">
                     <!-- Hiển thị items hiện có (khi edit) -->
                     <th:block th:if="${isEdit and templateEntity != null and templateEntity.items != null}">
@@ -94,24 +100,20 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        var categories = /*[[${categories}]]*/ [];
-        
+    <script>
         function addItem() {
             var container = document.getElementById('itemsContainer');
             var row = document.createElement('div');
             row.className = 'row mb-2 item-row';
             
-            var selectOptions = '<option value="">-- Chọn danh mục --</option>';
-            categories.forEach(function(cat) {
-                selectOptions += '<option value="' + cat.id + '">' + cat.name + '</option>';
-            });
+            // Clone options from template
+            var template = document.getElementById('categoryTemplate');
+            var selectHtml = template.innerHTML;
             
             row.innerHTML = `
                 <div class="col-md-5">
                     <select name="categoryIds" class="form-select" required>
-                        ${selectOptions}
+                        ${selectHtml}
                     </select>
                 </div>
                 <div class="col-md-5">
@@ -133,7 +135,6 @@
         function removeItem(btn) {
             btn.closest('.item-row').remove();
         }
-        /*]]>*/
     </script>
 </div>
 </body>
