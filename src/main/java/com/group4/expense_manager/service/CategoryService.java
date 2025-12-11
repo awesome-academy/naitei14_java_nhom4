@@ -13,4 +13,15 @@ public interface CategoryService {
 	Category createCategory(User user, CreateCategoryRequest request);
 	Category updateCategory(Integer categoryId, User user, CreateCategoryRequest request);
 	void deleteCategory(Integer categoryId, User user);
+	
+	// Admin methods for global categories
+	Page<Category> adminListGlobalCategories(CategoryType type, String keyword, Pageable pageable);
+	Category adminGetGlobalCategory(Integer categoryId);
+	Category adminCreateGlobalCategory(CreateCategoryRequest request);
+	Category adminUpdateGlobalCategory(Integer categoryId, CreateCategoryRequest request);
+	void adminSoftDeleteCategory(Integer categoryId);
+	
+	// Import/Export CSV
+	byte[] exportCategoriesToCsv();
+	void importCategoriesFromCsv(org.springframework.web.multipart.MultipartFile file) throws Exception;
 }

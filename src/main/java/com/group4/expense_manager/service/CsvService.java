@@ -72,4 +72,46 @@ public class CsvService {
         }
     }
 
+    // Category CSV Methods
+    public ByteArrayInputStream loadCategoryCsv() {
+        List<Category> categories = categoryRepository.findByUserIsNull(
+                org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+        ).getContent();
+        return CsvHelper.categoriesToCsv(categories);
+    }
+
+    public void saveCategoriesFromCsv(MultipartFile file) {
+        try {
+            if (!CsvHelper.hasCSVFormat(file)) {
+                throw new RuntimeException("File không đúng định dạng CSV");
+            }
+            
+            List<Category> categories = CsvHelper.csvToCategories(file.getInputStream());
+            List<Category> categoriesToSave = new ArrayList<>();
+            
+            for (Category category : categories) {
+                // Check if category with same name and type already exists
+                org.springframework.data.domain.Page<Category> allCategories = categoryRepository.findByUserIsNull(
+                        org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                );
+                
+                boolean exists = allCategories.getContent().stream().anyMatch(c -> 
+                    c.getName().equalsIgnoreCase(category.getName()) && 
+                    c.getType() == category.getType()
+                );
+                
+                if (!exists) {
+                    categoriesToSave.add(category);
+                }
+            }
+            
+            if (!categoriesToSave.isEmpty()) {
+                categoryRepository.saveAll(categoriesToSave);
+            }
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi lưu CSV data: " + e.getMessage());
+        }
+    }
+
 }
