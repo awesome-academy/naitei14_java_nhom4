@@ -1,8 +1,10 @@
 package com.group4.expense_manager.service;
 
 import com.group4.expense_manager.dto.response.UserCsvResponse;
+import com.group4.expense_manager.dto.request.IncomeCsvRequest;
 import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.Expense;
+import com.group4.expense_manager.entity.Income;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.repository.CategoryRepository;
 import com.group4.expense_manager.repository.ExpenseRepository;
@@ -70,6 +72,59 @@ public class CsvService {
         } catch (IOException e) {
             throw new RuntimeException("Fail to store CSV data: " + e.getMessage());
         }
+    }
+
+    public void saveIncomesFromCsv(MultipartFile file) {
+        try {
+            // 1. Nhờ Helper đọc file và lấy List DTO
+            List<IncomeCsvRequest> dtos = CsvHelper.csvToIncomeDtos(file.getInputStream());
+
+            List<Income> incomesToSave = new ArrayList<>();
+
+            for (IncomeCsvRequest dto : dtos) {
+                Income income = new Income();
+
+                // 2. Xử lý Logic tìm DB (Service làm việc này)
+
+                // A. Tìm User
+                User user = userRepository.findByEmail(dto.getUserEmail())
+                        .orElseThrow(() -> new RuntimeException("User not found: " + dto.getUserEmail()));
+                income.setUser(user);
+
+                // B. Tìm Category
+                if (dto.getCategoryName() != null && !dto.getCategoryName().equals("N/A")) {
+                    Category category = categoryRepository.findByNameAndUserId(dto.getCategoryName(), user.getId())
+                            .orElse(null);
+                    income.setCategory(category);
+                }
+
+                // C. Convert dữ liệu
+                income.setIncomeDate(LocalDate.parse(dto.getDate())); // Cần try-catch nếu sợ sai format
+                income.setAmount(new BigDecimal(dto.getAmount()));
+                income.setSource(dto.getSource());
+                income.setNote(dto.getNote());
+
+                // Default value logic
+                String currency = (dto.getCurrency() != null && !dto.getCurrency().isEmpty()) ? dto.getCurrency() : "VND";
+                income.setCurrency(currency);
+
+                boolean isRecurring = Boolean.parseBoolean(dto.getIsRecurring());
+                income.setRecurring(isRecurring);
+
+                incomesToSave.add(income);
+            }
+
+            // 3. Lưu vào DB
+            incomeRepository.saveAll(incomesToSave);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing CSV: " + e.getMessage());
+        }
+    }
+
+    public ByteArrayInputStream loadIncomeCsv() {
+        List<Income> incomes = incomeRepository.findAll();
+        return CsvHelper.incomesToCsv(incomes);
     }
 
 }
