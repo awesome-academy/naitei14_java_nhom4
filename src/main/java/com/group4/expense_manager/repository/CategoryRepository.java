@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
+import java.util.List;
+
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
 
@@ -21,4 +23,7 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
 	Page<Category> findByUserIsNullOrUser(User user, Pageable pageable);
 	Page<Category> findByTypeAndUserIsNullOrUser(CategoryType type, User user, Pageable pageable);
 
+	
+	// Lấy danh sách category theo type (cho admin)
+	List<Category> findByType(CategoryType type);
 }
