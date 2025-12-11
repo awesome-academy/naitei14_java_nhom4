@@ -10,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 import com.group4.expense_manager.exception.ResourceNotFoundException;
 
 import java.util.Optional;
@@ -28,8 +27,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> getUsers(String keyword, Boolean isActive, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size); // Page bắt đầu từ 0
+    public Page<User> getUsers(String keyword, Boolean isActive, Pageable pageable) {
         return userRepository.searchUsers(keyword, isActive, pageable);
     }
 

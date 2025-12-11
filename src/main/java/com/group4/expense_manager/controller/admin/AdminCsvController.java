@@ -49,4 +49,31 @@ public class AdminCsvController {
         }
         return "redirect:/admin/users";
     }
+
+    @GetMapping("/incomes/export")
+    public ResponseEntity<Resource> exportIncomes() {
+        String filename = "incomes_data.csv";
+        InputStreamResource file = new InputStreamResource(csvService.loadIncomeCsv());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(file);
+    }
+
+    @PostMapping("/incomes/import")
+    public String importIncomes(@RequestParam("file") MultipartFile file, RedirectAttributes ra) {
+        if (CsvHelper.hasCSVFormat(file)) {
+            try {
+                csvService.saveIncomesFromCsv(file);
+                ra.addFlashAttribute("message", "Import Incomes successfully: " + file.getOriginalFilename());
+            } catch (Exception e) {
+                ra.addFlashAttribute("error", "Failed to import file: " + e.getMessage());
+            }
+        } else {
+            ra.addFlashAttribute("error", "Please upload a valid CSV file!");
+        }
+
+        return "redirect:/admin/incomes";
+    }
 }
