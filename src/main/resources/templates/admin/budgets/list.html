@@ -6,6 +6,14 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-primary"><i class="fas fa-wallet"></i> Quản lý Ngân sách</h2>
+        <div class="btn-group" role="group">
+            <a th:href="@{/admin/csv/budgets/export}" class="btn btn-success">
+                <i class="fas fa-file-export"></i> Export CSV
+            </a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
+        </div>
     </div>
 
     <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -303,6 +311,38 @@
             }, 800);
         }
     </script>
+
+    <!-- Import Modal -->
+    <div class="modal fade" id="importModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-file-import"></i> Import Ngân sách từ CSV</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/csv/budgets/import}" method="post" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="csvFile" class="form-label fw-bold">Chọn file CSV</label>
+                            <input type="file" class="form-control" id="csvFile" name="file" accept=".csv" required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> Chỉ chấp nhận file định dạng .csv
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <strong>Lưu ý:</strong> File CSV phải có các cột phù hợp với cấu trúc dữ liệu ngân sách.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Upload & Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 </div>
 </body>
