@@ -10,10 +10,15 @@
                 <a th:href="@{/admin/categories/export}" class="btn btn-info">
                     <i class="fas fa-download"></i> Export CSV
                 </a>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
-                    <i class="fas fa-upload"></i> Import CSV
-                </button>
-                <a th:href="@{/admin/categories/create}" class="btn btn-success">
+                <form th:action="@{/admin/categories/import}" method="post" enctype="multipart/form-data"
+                    class="d-flex align-items-center ms-2">
+                    <input type="file" name="file" class="form-control form-control-sm" accept=".csv" required
+                        style="max-width:220px;">
+                    <button type="submit" class="btn btn-primary btn-sm ms-2">
+                        <i class="fas fa-upload"></i> Import
+                    </button>
+                </form>
+                <a th:href="@{/admin/categories/create}" class="btn btn-success ms-2">
                     <i class="fas fa-plus"></i> Thêm danh mục
                 </a>
             </div>
@@ -41,13 +46,14 @@
 
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Từ khóa tìm kiếm</label>
-                        <input type="text" name="keyword" class="form-control"
-                            placeholder="Tìm theo tên danh mục..." th:value="${keyword}" oninput="debounceSubmit()">
+                        <input type="text" name="keyword" class="form-control" placeholder="Tìm theo tên danh mục..."
+                            th:value="${keyword}" oninput="debounceSubmit()">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Loại danh mục</label>
-                        <select name="type" class="form-select" onchange="submitForm()">
+                        <select name="type" class="form-select"
+                            onchange="document.getElementById('filterForm').submit()">
                             <option value="">-- Tất cả loại --</option>
                             <option th:each="t : ${categoryTypes}" th:value="${t}"
                                 th:text="${t == T(com.group4.expense_manager.entity.CategoryType).expense ? 'Chi tiêu' : 'Thu nhập'}"
@@ -257,8 +263,7 @@
                                         <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title"><i
-                                                            class="fas fa-exclamation-triangle"></i>
+                                                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i>
                                                         Xác nhận xóa</h5>
                                                     <button type="button" class="btn-close btn-close-white"
                                                         data-bs-dismiss="modal"></button>
@@ -281,104 +286,61 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div th:if="${totalPages > 1}" class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div class="text-muted">
+                        Hiển thị trang <strong>[[${currentPage}]]</strong> / <strong>[[${totalPages}]]</strong>
+                        (Tổng <strong>[[${totalItems}]]</strong> danh mục)
                     </div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item" th:classappend="${currentPage == 1 ? 'disabled' : ''}">
+                                <a class="page-link"
+                                    th:href="@{/admin/categories(page=${currentPage - 1}, sortField=${sortField}, sortDir=${sortDir}, keyword=${keyword}, type=${type})}">
+                                    <i class="fas fa-chevron-left"></i> Trước
+                                </a>
+                            </li>
 
-                    <!-- Pagination -->
-                    <div th:if="${totalPages > 1}"
-                        class="d-flex justify-content-between align-items-center p-3 border-top">
-                        <div class="text-muted">
-                            Hiển thị trang <strong>[[${currentPage}]]</strong> / <strong>[[${totalPages}]]</strong>
-                            (Tổng <strong>[[${totalItems}]]</strong> danh mục)
-                        </div>
-                        <nav>
-                            <ul class="pagination mb-0">
-                                <li class="page-item" th:classappend="${currentPage == 1 ? 'disabled' : ''}">
-                                    <a class="page-link"
-                                        th:href="@{/admin/categories(page=${currentPage - 1}, sortField=${sortField}, sortDir=${sortDir}, keyword=${keyword}, type=${type})}">
-                                        <i class="fas fa-chevron-left"></i> Trước
-                                    </a>
-                                </li>
+                            <li th:each="i : ${#numbers.sequence(1, totalPages)}"
+                                th:if="${i == 1 || i == totalPages || (i >= currentPage - 2 && i <= currentPage + 2)}"
+                                class="page-item" th:classappend="${i == currentPage ? 'active' : ''}">
+                                <a class="page-link"
+                                    th:href="@{/admin/categories(page=${i}, sortField=${sortField}, sortDir=${sortDir}, keyword=${keyword}, type=${type})}"
+                                    th:text="${i}"></a>
+                            </li>
 
-                                <li th:each="i : ${#numbers.sequence(1, totalPages)}"
-                                    th:if="${i == 1 || i == totalPages || (i >= currentPage - 2 && i <= currentPage + 2)}"
-                                    class="page-item" th:classappend="${i == currentPage ? 'active' : ''}">
-                                    <a class="page-link"
-                                        th:href="@{/admin/categories(page=${i}, sortField=${sortField}, sortDir=${sortDir}, keyword=${keyword}, type=${type})}"
-                                        th:text="${i}"></a>
-                                </li>
-
-                                <li class="page-item" th:classappend="${currentPage == totalPages ? 'disabled' : ''}">
-                                    <a class="page-link"
-                                        th:href="@{/admin/categories(page=${currentPage + 1}, sortField=${sortField}, sortDir=${sortDir}, keyword=${keyword}, type=${type})}">
-                                        Sau <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
+                            <li class="page-item" th:classappend="${currentPage == totalPages ? 'disabled' : ''}">
+                                <a class="page-link"
+                                    th:href="@{/admin/categories(page=${currentPage + 1}, sortField=${sortField}, sortDir=${sortDir}, keyword=${keyword}, type=${type})}">
+                                    Sau <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Import Modal -->
-        <div class="modal fade" id="importModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title"><i class="fas fa-file-upload"></i> Import Categories từ CSV</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <form th:action="@{/admin/categories/import}" method="post" enctype="multipart/form-data">
-                        <div class="modal-body">
-                            <div class="alert alert-info">
-                                <strong><i class="fas fa-info-circle"></i> Định dạng CSV:</strong>
-                                <ul class="mb-0 mt-2">
-                                    <li>Header: ID,Name,Description,Icon,Type,Created At,Updated At</li>
-                                    <li>Type: <code>expense</code> hoặc <code>income</code></li>
-                                    <li>Name là bắt buộc</li>
-                                    <li>Các trường khác có thể để trống</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Chọn file CSV <span
-                                        class="text-danger">*</span></label>
-                                <input type="file" name="file" class="form-control" accept=".csv" required>
-                            </div>
-
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <strong>Lưu ý:</strong> Hệ thống sẽ bỏ qua các danh mục trùng tên và loại.
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-upload"></i> Import
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <script>
-            let debounceTimer;
-            function debounceSubmit() {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    document.getElementById('filterForm').submit();
-                }, 500);
-            }
-
-            function submitForm() {
+    <script>
+        let debounceTimer;
+        function debounceSubmit() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
                 document.getElementById('filterForm').submit();
-            }
-        </script>
+            }, 500);
+        }
+
+        function submitForm() {
+            document.getElementById('filterForm').submit();
+        }
+    </script>
 
     </div>
 </body>
