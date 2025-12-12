@@ -2,10 +2,11 @@ package com.group4.expense_manager.util;
 
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.entity.User;
+import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.dto.response.UserCsvResponse;
 import org.apache.commons.csv.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.group4.expense_manager.entity.CategoryType;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class CsvHelper {
     }
 
     // Category CSV Export/Import
-    public static ByteArrayInputStream categoriesToCsv(List<com.group4.expense_manager.entity.Category> categories) {
+    public static ByteArrayInputStream categoriesToCsv(List<Category> categories) {
         final CSVFormat format = CSVFormat.DEFAULT.builder()
                 .setHeader("ID", "Name", "Description", "Icon", "Type", "Created At", "Updated At")
                 .build();
@@ -82,7 +83,7 @@ public class CsvHelper {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)), format)) {
 
-            for (com.group4.expense_manager.entity.Category category : categories) {
+            for (Category category : categories) {
                 csvPrinter.printRecord(
                         category.getId(),
                         category.getName(),
@@ -101,16 +102,16 @@ public class CsvHelper {
         }
     }
 
-    public static List<com.group4.expense_manager.entity.Category> csvToCategories(InputStream is) {
+    public static List<Category> csvToCategories(InputStream is) {
         try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
              CSVParser csvParser = new CSVParser(fileReader,
                      CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).setTrim(true).build())) {
 
-            List<com.group4.expense_manager.entity.Category> categories = new ArrayList<>();
+            List<Category> categories = new ArrayList<>();
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
             for (CSVRecord csvRecord : csvRecords) {
-                com.group4.expense_manager.entity.Category category = new com.group4.expense_manager.entity.Category();
+                Category category = new Category();
                 
                 String name = csvRecord.get("Name");
                 if (name == null || name.trim().isEmpty()) {
@@ -123,7 +124,7 @@ public class CsvHelper {
                 
                 String typeStr = csvRecord.get("Type");
                 try {
-                    category.setType(com.group4.expense_manager.entity.CategoryType.valueOf(typeStr));
+                    category.setType(CategoryType.valueOf(typeStr));
                 } catch (IllegalArgumentException e) {
                     throw new RuntimeException("Type không hợp lệ (dòng " + csvRecord.getRecordNumber() + "): " + typeStr);
                 }
