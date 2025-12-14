@@ -82,13 +82,12 @@ public class CategoryServiceImpl implements CategoryService {
 	@Transactional
 	public void deleteCategory(Integer categoryId, User user) {
 		Category category = getCategory(categoryId, user);
-		if (category.getIcon() != null){
-			cloudinaryService.deleteIcon(category.getIcon());
-		}
 		if (category.getUser() == null) {
 			throw new RuntimeException("Không thể xóa danh mục dùng chung.");
 		}
-		categoryRepository.delete(category);
+		// Soft delete - set deleted flag to true
+		category.setDeleted(true);
+		categoryRepository.save(category);
 	}
 
 	// Admin methods for global categories management
