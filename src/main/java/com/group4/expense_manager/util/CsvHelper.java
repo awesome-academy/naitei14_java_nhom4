@@ -3,13 +3,14 @@ package com.group4.expense_manager.util;
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.entity.Income;
 import com.group4.expense_manager.entity.User;
+import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.Budget;
 import com.group4.expense_manager.dto.response.UserCsvResponse;
 import com.group4.expense_manager.dto.request.IncomeCsvRequest;
 import com.group4.expense_manager.dto.request.BudgetCsvRequest;
 import org.apache.commons.csv.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.group4.expense_manager.entity.CategoryType;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -189,5 +190,71 @@ public class CsvHelper {
 
     public static boolean hasCSVFormat(MultipartFile file) {
         return TYPE.equals(file.getContentType()) || file.getOriginalFilename().endsWith(".csv");
+    }
+
+    // Category CSV Export/Import
+    public static ByteArrayInputStream categoriesToCsv(List<Category> categories) {
+        final CSVFormat format = CSVFormat.DEFAULT.builder()
+                .setHeader("ID", "Name", "Description", "Icon", "Type", "Created At", "Updated At")
+                .build();
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)), format)) {
+
+            for (Category category : categories) {
+                csvPrinter.printRecord(
+                        category.getId(),
+                        category.getName(),
+                        category.getDescription() != null ? category.getDescription() : "",
+                        category.getIcon() != null ? category.getIcon() : "",
+                        category.getType(),
+                        category.getCreatedAt(),
+                        category.getUpdatedAt()
+                );
+            }
+
+            csvPrinter.flush();
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi ghi dữ liệu CSV Category: " + e.getMessage());
+        }
+    }
+
+    public static List<Category> csvToCategories(InputStream is) {
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+             CSVParser csvParser = new CSVParser(fileReader,
+                     CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).setTrim(true).build())) {
+
+            List<Category> categories = new ArrayList<>();
+            Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
+            for (CSVRecord csvRecord : csvRecords) {
+                Category category = new Category();
+                
+                String name = csvRecord.get("Name");
+                if (name == null || name.trim().isEmpty()) {
+                    throw new RuntimeException("Tên danh mục không được để trống (dòng " + csvRecord.getRecordNumber() + ")");
+                }
+                
+                category.setName(name);
+                category.setDescription(csvRecord.get("Description"));
+                category.setIcon(csvRecord.get("Icon"));
+                
+                String typeStr = csvRecord.get("Type");
+                try {
+                    category.setType(CategoryType.valueOf(typeStr));
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException("Type không hợp lệ (dòng " + csvRecord.getRecordNumber() + "): " + typeStr);
+                }
+                
+                category.setUser(null); // Global category
+                category.setDeleted(false);
+                
+                categories.add(category);
+            }
+            return categories;
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi đọc file CSV Category: " + e.getMessage());
+        }
     }
 }
