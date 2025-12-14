@@ -76,4 +76,30 @@ public class AdminCsvController {
 
         return "redirect:/admin/incomes";
     }
+
+    @GetMapping("/budgets/export")
+    public ResponseEntity<Resource> exportBudgets() {
+        String filename = "budgets_data.csv";
+        InputStreamResource file = new InputStreamResource(csvService.loadBudgetCsv());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(file);
+    }
+
+    @PostMapping("/budgets/import")
+    public String importBudgets(@RequestParam("file") MultipartFile file, RedirectAttributes ra) {
+        if (CsvHelper.hasCSVFormat(file)) {
+            try {
+                csvService.saveBudgetsFromCsv(file);
+                ra.addFlashAttribute("message", "Import Budgets thành công: " + file.getOriginalFilename());
+            } catch (Exception e) {
+                ra.addFlashAttribute("error", "Lỗi import file: " + e.getMessage());
+            }
+        } else {
+            ra.addFlashAttribute("error", "Vui lòng chọn file định dạng CSV!");
+        }
+        return "redirect:/admin/budgets";
+    }
 }

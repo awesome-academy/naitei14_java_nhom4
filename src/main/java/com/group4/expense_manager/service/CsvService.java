@@ -2,14 +2,18 @@ package com.group4.expense_manager.service;
 
 import com.group4.expense_manager.dto.response.UserCsvResponse;
 import com.group4.expense_manager.dto.request.IncomeCsvRequest;
+import com.group4.expense_manager.dto.request.BudgetCsvRequest;
 import com.group4.expense_manager.entity.Category;
+import com.group4.expense_manager.entity.CategoryType;
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.entity.Income;
 import com.group4.expense_manager.entity.User;
+import com.group4.expense_manager.entity.Budget;
 import com.group4.expense_manager.repository.CategoryRepository;
 import com.group4.expense_manager.repository.ExpenseRepository;
 import com.group4.expense_manager.repository.IncomeRepository;
 import com.group4.expense_manager.repository.UserRepository;
+import com.group4.expense_manager.repository.BudgetRepository;
 import com.group4.expense_manager.util.CsvHelper;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -27,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.format.DateTimeParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 @Service
 public class CsvService {
@@ -35,6 +40,7 @@ public class CsvService {
     @Autowired private IncomeRepository incomeRepository;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private BudgetRepository budgetRepository;
 
     public ByteArrayInputStream loadUserCsv() {
         List<User> users = userRepository.findAll();
@@ -74,6 +80,48 @@ public class CsvService {
         }
     }
 
+    // Category CSV Methods
+    public ByteArrayInputStream loadCategoryCsv() {
+        List<Category> categories = categoryRepository.findByUserIsNull(
+                org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+        ).getContent();
+        return CsvHelper.categoriesToCsv(categories);
+    }
+
+    public void saveCategoriesFromCsv(MultipartFile file) {
+        try {
+            if (!CsvHelper.hasCSVFormat(file)) {
+                throw new RuntimeException("File không đúng định dạng CSV");
+            }
+            
+            List<Category> categories = CsvHelper.csvToCategories(file.getInputStream());
+            List<Category> categoriesToSave = new ArrayList<>();
+            
+            for (Category category : categories) {
+                // Check if category with same name and type already exists
+                org.springframework.data.domain.Page<Category> allCategories = categoryRepository.findByUserIsNull(
+                        org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                );
+                
+                boolean exists = allCategories.getContent().stream().anyMatch(c -> 
+                    c.getName().equalsIgnoreCase(category.getName()) && 
+                    c.getType() == category.getType()
+                );
+                
+                if (!exists) {
+                    categoriesToSave.add(category);
+                }
+            }
+            
+            if (!categoriesToSave.isEmpty()) {
+                categoryRepository.saveAll(categoriesToSave);
+            }
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi lưu CSV data: " + e.getMessage());
+        }
+    }
+
     public void saveIncomesFromCsv(MultipartFile file) {
         try {
             // 1. Nhờ Helper đọc file và lấy List DTO
@@ -93,7 +141,12 @@ public class CsvService {
 
                 // B. Tìm Category
                 if (dto.getCategoryName() != null && !dto.getCategoryName().equals("N/A")) {
-                    Category category = categoryRepository.findByNameAndUserId(dto.getCategoryName(), user.getId())
+                    final CategoryType CATEGORY_TYPE = CategoryType.income;
+                    Category category = categoryRepository.findByNameAndUserIdAndType(
+                                    dto.getCategoryName(),
+                                    user.getId(),
+                                    CATEGORY_TYPE
+                            )
                             .orElse(null);
                     income.setCategory(category);
                 }
@@ -113,9 +166,58 @@ public class CsvService {
 
                 incomesToSave.add(income);
             }
-
-            // 3. Lưu vào DB
             incomeRepository.saveAll(incomesToSave);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing CSV: " + e.getMessage());
+        }
+    }
+
+    public ByteArrayInputStream loadBudgetCsv() {
+        List<Budget> budgets = budgetRepository.findAll();
+        return CsvHelper.budgetsToCsv(budgets);
+    }
+
+    // --- IMPORT BUDGET ---
+    public void saveBudgetsFromCsv(MultipartFile file) {
+        try {
+            List<BudgetCsvRequest> dtos = CsvHelper.csvToBudgetDtos(file.getInputStream());
+
+            List<Budget> budgetsToSave = new ArrayList<>();
+
+            for (BudgetCsvRequest dto : dtos) {
+                Budget budget = new Budget();
+
+                User user = userRepository.findByEmail(dto.getUserEmail())
+                        .orElseThrow(() -> new RuntimeException("User not found: " + dto.getUserEmail()));
+                budget.setUser(user);
+
+                String categoryName = dto.getCategoryName();
+                final CategoryType CATEGORY_TYPE = CategoryType.expense;
+                Category category = categoryRepository.findByNameAndUserIdAndType(
+                                categoryName,
+                                user.getId(),
+                                CATEGORY_TYPE
+                        )
+                        .orElseThrow(() -> new RuntimeException("Category EXPENSE not found for user " + user.getEmail() + ": " + categoryName));
+                budget.setCategory(category);
+                try {
+                    budget.setStartDate(LocalDate.parse(dto.getStartDate()));
+                    budget.setEndDate(LocalDate.parse(dto.getEndDate()));
+                } catch (DateTimeParseException e) {
+                    throw new RuntimeException("Invalid Date format in CSV. Expected YYYY-MM-DD.");
+                }
+
+                budget.setAmount(new BigDecimal(dto.getAmount()));
+
+                String currency = (dto.getCurrency() != null && !dto.getCurrency().isEmpty()) ? dto.getCurrency() : user.getDefaultCurrency();
+                budget.setCurrency(currency);
+
+                // Lưu ý: Logic check trùng lặp (ví dụ: cùng Category, cùng thời gian) nên được xử lý ở đây.
+
+                budgetsToSave.add(budget);
+            }
+            budgetRepository.saveAll(budgetsToSave);
 
         } catch (IOException e) {
             throw new RuntimeException("Error processing CSV: " + e.getMessage());

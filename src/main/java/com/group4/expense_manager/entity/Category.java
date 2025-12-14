@@ -2,12 +2,13 @@ package com.group4.expense_manager.entity;
 
 // Category.java
 import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
+
 import java.time.Instant;
 import java.util.Set;
 
@@ -18,6 +19,8 @@ import java.util.Set;
         @Index(name = "idx_type", columnList = "type"),
         @Index(name = "idx_user_id", columnList = "user_id")
 })
+@SQLDelete(sql = "UPDATE categories SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
 public class Category {
 
     @Id
@@ -48,6 +51,9 @@ public class Category {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @Column(nullable = false)
+    private Boolean deleted = false;
 
     // --- Mối quan hệ ---
     // ON DELETE SET NULL: Khi Category bị xóa, Expense.category_id sẽ set về NULL
