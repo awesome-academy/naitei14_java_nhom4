@@ -5,9 +5,9 @@
 <div th:fragment="content">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary"><i class="fas fa-coins"></i> Quản lý Thu nhập</h2>
+        <h2 class="text-primary"><i class="fas fa-wallet"></i> Quản lý Ngân sách</h2>
         <div class="btn-group" role="group">
-            <a th:href="@{/admin/csv/incomes/export}" class="btn btn-success">
+            <a th:href="@{/admin/csv/budgets/export}" class="btn btn-success">
                 <i class="fas fa-file-export"></i> Export CSV
             </a>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
@@ -32,14 +32,14 @@
             </h6>
         </div>
         <div class="card-body">
-            <form id="filterForm" th:action="@{/admin/incomes}" method="get" class="row g-3">
+            <form id="filterForm" th:action="@{/admin/budgets}" method="get" class="row g-3">
                 <input type="hidden" name="sortField" th:value="${sortField}">
                 <input type="hidden" name="sortDir" th:value="${sortDir}">
 
                 <div class="col-md-3">
                     <label class="form-label fw-bold">Từ khóa</label>
                     <input type="text" name="keyword" class="form-control"
-                           placeholder="Nguồn thu, Ghi chú, Email..."
+                           placeholder="Danh mục, Tên người dùng, Email..."
                            th:value="${keyword}" oninput="debounceSubmit()">
                 </div>
 
@@ -66,7 +66,7 @@
                 </div>
 
                 <div class="col-md-2 d-flex align-items-end gap-2">
-                    <a th:href="@{/admin/incomes}" class="btn btn-secondary w-100" title="Đặt lại bộ lọc">
+                    <a th:href="@{/admin/budgets}" class="btn btn-secondary w-100" title="Đặt lại bộ lọc">
                         <i class="fas fa-sync"></i> Reset
                     </a>
                 </div>
@@ -81,7 +81,7 @@
                     <thead class="table-dark">
                     <tr>
                         <th>
-                            <a th:href="@{/admin/incomes(page=${currentPage}, sortField='id', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='id', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
                                 ID <i th:if="${sortField == 'id'}"
                                       th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
@@ -91,15 +91,15 @@
                         <th>Người dùng</th>
 
                         <th>
-                            <a th:href="@{/admin/incomes(page=${currentPage}, sortField='source', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='category.name', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
-                                Nguồn thu <i th:if="${sortField == 'source'}"
+                                Danh mục <i th:if="${sortField == 'category.name'}"
                                              th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
                             </a>
                         </th>
 
                         <th>
-                            <a th:href="@{/admin/incomes(page=${currentPage}, sortField='amount', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='amount', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
                                 Số tiền <i th:if="${sortField == 'amount'}"
                                            th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
@@ -107,147 +107,122 @@
                         </th>
 
                         <th>
-                            <a th:href="@{/admin/incomes(page=${currentPage}, sortField='incomeDate', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='startDate', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
-                                Ngày <i th:if="${sortField == 'incomeDate'}"
+                                Ngày bắt đầu <i th:if="${sortField == 'startDate'}"
                                         th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
                             </a>
                         </th>
 
-                        <th>Danh mục</th>
-                        <th>Ghi chú</th> <th>Loại</th>
+                        <th>
+                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='endDate', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                               class="text-white text-decoration-none">
+                                Ngày kết thúc <i th:if="${sortField == 'endDate'}"
+                                        th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+
                         <th class="text-center" style="width: 150px;">Hành động</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:if="${#lists.isEmpty(incomes)}">
-                        <td colspan="9" class="text-center py-5 text-muted">
+                    <tr th:if="${#lists.isEmpty(budgets)}">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <i class="fas fa-inbox fa-3x mb-3"></i><br>
-                            Không tìm thấy dữ liệu thu nhập nào.
+                            Không tìm thấy dữ liệu ngân sách nào.
                         </td>
                     </tr>
 
-                    <tr th:each="inc : ${incomes}">
-                        <td><span class="badge bg-secondary" th:text="${inc.id}"></span></td>
+                    <tr th:each="budget : ${budgets}">
+                        <td><span class="badge bg-secondary" th:text="${budget.id}"></span></td>
                         <td>
                             <div class="d-flex flex-column">
-                                <strong th:text="${inc.user.name}"></strong>
-                                <small class="text-muted" th:text="${inc.user.email}"></small>
+                                <strong th:text="${budget.user.name}"></strong>
+                                <small class="text-muted" th:text="${budget.user.email}"></small>
                             </div>
                         </td>
-                        <td th:text="${inc.source}" class="fw-semibold"></td>
-
-                        <td class="fw-bold text-success">
-                            <span th:text="${#numbers.formatDecimal(inc.amount, 0, 'COMMA', 0, 'POINT')}"></span>
-                            <small th:text="${inc.currency}">VND</small>
-                        </td>
-
-                        <td th:text="${#temporals.format(inc.incomeDate, 'dd/MM/yyyy')}"></td>
-
                         <td>
-                            <span th:if="${inc.category}" class="badge bg-info text-dark">
-                                <i class="fas fa-tag me-1"></i> <span th:text="${inc.category.name}"></span>
+                            <span th:if="${budget.category}" class="badge bg-info text-dark">
+                                <i class="fas fa-tag me-1"></i> <span th:text="${budget.category.name}"></span>
                             </span>
-                            <span th:unless="${inc.category}" class="text-muted fst-italic">---</span>
+                            <span th:unless="${budget.category}" class="text-muted fst-italic">---</span>
                         </td>
 
-                        <td>
-                            <span th:if="${inc.note}"
-                                  th:text="${#strings.length(inc.note) > 15 ? #strings.substring(inc.note, 0, 15) + '...' : inc.note}"
-                                  th:title="${inc.note}"
-                                  class="text-muted small"></span>
+                        <td class="fw-bold text-primary">
+                            <span th:text="${#numbers.formatDecimal(budget.amount, 0, 'COMMA', 0, 'POINT')}"></span>
+                            <small th:text="${budget.currency}">VND</small>
                         </td>
 
-                        <td>
-                            <span th:if="${inc.recurring}" class="badge bg-warning text-dark" title="Lặp lại">
-                                <i class="fas fa-sync"></i> <span th:text="${inc.recurringInterval}"></span>
-                            </span>
-                            <span th:unless="${inc.recurring}" class="badge bg-light text-secondary border">Một lần</span>
-                        </td>
+                        <td th:text="${#temporals.format(budget.startDate, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${#temporals.format(budget.endDate, 'dd/MM/yyyy')}"></td>
 
                         <td class="text-center">
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-sm btn-info text-white"
                                         data-bs-toggle="modal"
-                                        th:data-bs-target="'#viewModal' + ${inc.id}" title="Xem chi tiết">
+                                        th:data-bs-target="'#viewModal' + ${budget.id}" title="Xem chi tiết">
                                     <i class="fas fa-eye"></i>
                                 </button>
 
-                                <a th:href="@{'/admin/incomes/edit/' + ${inc.id}}" class="btn btn-sm btn-warning" title="Sửa">
+                                <a th:href="@{'/admin/budgets/edit/' + ${budget.id}}" class="btn btn-sm btn-warning" title="Sửa">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
                                 <button type="button" class="btn btn-sm btn-danger"
                                         data-bs-toggle="modal"
-                                        th:data-bs-target="'#deleteModal' + ${inc.id}" title="Xóa">
+                                        th:data-bs-target="'#deleteModal' + ${budget.id}" title="Xóa">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
 
-                            <div class="modal fade" th:id="'viewModal' + ${inc.id}" tabindex="-1">
+                            <!-- View Modal -->
+                            <div class="modal fade" th:id="'viewModal' + ${budget.id}" tabindex="-1">
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header bg-info text-white">
-                                            <h5 class="modal-title"><i class="fas fa-info-circle"></i> Chi tiết Thu nhập #[[${inc.id}]]</h5>
+                                            <h5 class="modal-title"><i class="fas fa-info-circle"></i> Chi tiết Ngân sách #[[${budget.id}]]</h5>
                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body text-start p-4">
                                             <div class="row mb-3 align-items-center">
                                                 <div class="col-md-6">
-                                                    <h6 class="text-muted text-uppercase mb-1">Số tiền</h6>
-                                                    <h2 class="text-success fw-bold m-0">
-                                                        <span th:text="${#numbers.formatDecimal(inc.amount, 0, 'COMMA', 0, 'POINT')}"></span>
-                                                        <small class="fs-6 text-muted" th:text="${inc.currency}"></small>
+                                                    <h6 class="text-muted text-uppercase mb-1">Số tiền ngân sách</h6>
+                                                    <h2 class="text-primary fw-bold m-0">
+                                                        <span th:text="${#numbers.formatDecimal(budget.amount, 0, 'COMMA', 0, 'POINT')}"></span>
+                                                        <small class="fs-6 text-muted" th:text="${budget.currency}"></small>
                                                     </h2>
                                                 </div>
                                                 <div class="col-md-6 text-md-end">
-                                                    <h6 class="text-muted text-uppercase mb-1">Nguồn thu</h6>
-                                                    <span class="badge bg-primary fs-5" th:text="${inc.source}"></span>
+                                                    <h6 class="text-muted text-uppercase mb-1">Danh mục</h6>
+                                                    <span class="badge bg-info fs-5" th:text="${budget.category?.name ?: 'N/A'}"></span>
                                                 </div>
                                             </div>
                                             <hr>
                                             <div class="row g-4">
                                                 <div class="col-md-6">
                                                     <label class="fw-bold text-secondary small">NGƯỜI TẠO</label>
-                                                    <div class="fw-bold" th:text="${inc.user.name}"></div>
-                                                    <div class="text-muted small" th:text="${inc.user.email}"></div>
+                                                    <div class="fw-bold" th:text="${budget.user.name}"></div>
+                                                    <div class="text-muted small" th:text="${budget.user.email}"></div>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="fw-bold text-secondary small">NGÀY THU NHẬP</label>
-                                                    <div class="fw-bold" th:text="${#temporals.format(inc.incomeDate, 'EEEE, dd/MM/yyyy')}"></div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="fw-bold text-secondary small">DANH MỤC</label>
-                                                    <div>
-                                                        <span th:if="${inc.category}" class="badge bg-info text-dark" th:text="${inc.category.name}"></span>
-                                                        <span th:unless="${inc.category}" class="text-muted">Không có danh mục</span>
+                                                    <label class="fw-bold text-secondary small">THỜI GIAN ÁP DỤNG</label>
+                                                    <div class="fw-bold">
+                                                        <span th:text="${#temporals.format(budget.startDate, 'dd/MM/yyyy')}"></span> - 
+                                                        <span th:text="${#temporals.format(budget.endDate, 'dd/MM/yyyy')}"></span>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="fw-bold text-secondary small">CHẾ ĐỘ LẶP</label>
-                                                    <div>
-                                                        <span th:if="${inc.recurring}" class="badge bg-warning text-dark">
-                                                            <i class="fas fa-sync me-1"></i> Lặp lại: <span th:text="${inc.recurringInterval}"></span>
-                                                        </span>
-                                                        <span th:unless="${inc.recurring}" class="badge bg-light text-secondary border">Thu nhập một lần</span>
-                                                    </div>
-                                                </div>
-                                                <div class="col-12">
-                                                    <label class="fw-bold text-secondary small">GHI CHÚ ĐẦY ĐỦ</label>
-                                                    <div class="p-3 bg-light rounded border border-light" th:text="${inc.note ?: 'Không có ghi chú nào.'}"></div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="fw-bold text-secondary small">NGÀY TẠO BẢN GHI</label>
-                                                    <div class="small text-muted" th:text="${#dates.format(inc.createdAt, 'dd/MM/yyyy HH:mm:ss')}"></div>
+                                                    <div class="small text-muted" th:text="${#dates.format(budget.createdAt, 'dd/MM/yyyy HH:mm:ss')}"></div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="fw-bold text-secondary small">CẬP NHẬT LẦN CUỐI</label>
-                                                    <div class="small text-muted" th:text="${#dates.format(inc.updatedAt, 'dd/MM/yyyy HH:mm:ss')}"></div>
+                                                    <div class="small text-muted" th:text="${#dates.format(budget.updatedAt, 'dd/MM/yyyy HH:mm:ss')}"></div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="modal-footer bg-light">
-                                            <a th:href="@{'/admin/incomes/edit/' + ${inc.id}}" class="btn btn-warning">
+                                            <a th:href="@{'/admin/budgets/edit/' + ${budget.id}}" class="btn btn-warning">
                                                 <i class="fas fa-edit"></i> Chỉnh sửa
                                             </a>
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -255,7 +230,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="modal fade" th:id="'deleteModal' + ${inc.id}" tabindex="-1">
+
+                            <!-- Delete Modal -->
+                            <div class="modal fade" th:id="'deleteModal' + ${budget.id}" tabindex="-1">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header bg-danger text-white">
@@ -263,15 +240,15 @@
                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body text-start">
-                                            <p>Bạn có chắc chắn muốn xóa khoản thu nhập này không?</p>
+                                            <p>Bạn có chắc chắn muốn xóa ngân sách này không?</p>
                                             <div class="alert alert-warning">
                                                 <div class="d-flex justify-content-between">
-                                                    <strong>Nguồn:</strong> <span th:text="${inc.source}"></span>
+                                                    <strong>Danh mục:</strong> <span th:text="${budget.category?.name ?: 'N/A'}"></span>
                                                 </div>
                                                 <div class="d-flex justify-content-between">
                                                     <strong>Số tiền:</strong>
                                                     <span class="text-danger fw-bold"
-                                                          th:text="${#numbers.formatDecimal(inc.amount, 0, 'COMMA', 0, 'POINT') + ' ' + inc.currency}">
+                                                          th:text="${#numbers.formatDecimal(budget.amount, 0, 'COMMA', 0, 'POINT') + ' ' + budget.currency}">
                                                     </span>
                                                 </div>
                                             </div>
@@ -279,7 +256,7 @@
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                                            <a th:href="@{'/admin/incomes/delete/' + ${inc.id}}" class="btn btn-danger">Xóa ngay</a>
+                                            <a th:href="@{'/admin/budgets/delete/' + ${budget.id}}" class="btn btn-danger">Xóa ngay</a>
                                         </div>
                                     </div>
                                 </div>
@@ -291,6 +268,7 @@
             </div>
         </div>
 
+        <!-- Pagination -->
         <div class="card-footer bg-white d-flex justify-content-between align-items-center" th:if="${totalPages > 1}">
             <div class="text-muted small">
                 Hiển thị trang [[${currentPage}]] / [[${totalPages}]] (Tổng [[${totalItems}]] mục)
@@ -298,7 +276,7 @@
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/incomes(page=${currentPage - 1}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}">
+                        <a class="page-link" th:href="@{/admin/budgets(page=${currentPage - 1}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}">
                             Trước
                         </a>
                     </li>
@@ -306,12 +284,12 @@
                     <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
                         th:classappend="${currentPage == i} ? 'active'">
                         <a class="page-link"
-                           th:href="@{/admin/incomes(page=${i}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}"
+                           th:href="@{/admin/budgets(page=${i}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}"
                            th:text="${i}"></a>
                     </li>
 
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/incomes(page=${currentPage + 1}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}">
+                        <a class="page-link" th:href="@{/admin/budgets(page=${currentPage + 1}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}">
                             Sau
                         </a>
                     </li>
@@ -339,10 +317,10 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="fas fa-file-import"></i> Import Thu nhập từ CSV</h5>
+                    <h5 class="modal-title"><i class="fas fa-file-import"></i> Import Ngân sách từ CSV</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form th:action="@{/admin/csv/incomes/import}" method="post" enctype="multipart/form-data">
+                <form th:action="@{/admin/csv/budgets/import}" method="post" enctype="multipart/form-data">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="csvFile" class="form-label fw-bold">Chọn file CSV</label>
@@ -352,7 +330,7 @@
                             </div>
                         </div>
                         <div class="alert alert-info">
-                            <strong>Lưu ý:</strong> File CSV phải có các cột phù hợp với cấu trúc dữ liệu thu nhập.
+                            <strong>Lưu ý:</strong> File CSV phải có các cột phù hợp với cấu trúc dữ liệu ngân sách.
                         </div>
                     </div>
                     <div class="modal-footer">

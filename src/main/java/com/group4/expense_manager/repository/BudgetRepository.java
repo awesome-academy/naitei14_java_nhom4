@@ -6,6 +6,8 @@ import com.group4.expense_manager.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -29,4 +31,27 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
     
     Page<Budget> findByUserAndCategoryAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
         User user, Category category, LocalDate end, LocalDate start, Pageable pageable);
+    
+    // ========================================================================
+    // ADMIN METHODS - Search all budgets across all users
+    // ========================================================================
+    @Query("""
+        SELECT b FROM Budget b
+        WHERE (:user IS NULL OR b.user = :user)
+          AND (:start IS NULL OR b.startDate >= :start)
+          AND (:end IS NULL OR b.endDate <= :end)
+          AND (
+               :keyword IS NULL OR :keyword = '' OR
+               LOWER(b.category.name) LIKE CONCAT('%', LOWER(:keyword), '%') OR
+               LOWER(b.user.name) LIKE CONCAT('%', LOWER(:keyword), '%') OR
+               LOWER(b.user.email) LIKE CONCAT('%', LOWER(:keyword), '%')
+          )
+        """)
+    Page<Budget> searchBudgetsForAdmin(
+            @Param("user") User user,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

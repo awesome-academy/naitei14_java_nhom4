@@ -56,6 +56,20 @@
             </li>
 
             <li>
+                <a th:href="@{/admin/budgets}" class="nav-link"
+                   th:classappend="${@urlUtils.isActive('/admin/budgets')} ? 'active'">
+                    <i class="fas fa-wallet text-primary"></i> Budgets (Global)
+                </a>
+            </li>
+
+            <li>
+                <a th:href="@{/admin/budget-templates}" class="nav-link"
+                   th:classappend="${@urlUtils.isActive('/admin/budget-templates')} ? 'active'">
+                    <i class="fas fa-file-invoice-dollar text-warning"></i> Budget Templates
+                </a>
+            </li>
+
+            <li>
                 <a href="#" class="nav-link">
                     <i class="fas fa-chart-line"></i> Reports & Analytics
                 </a>

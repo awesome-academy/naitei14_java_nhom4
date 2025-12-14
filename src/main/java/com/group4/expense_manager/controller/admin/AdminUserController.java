@@ -9,6 +9,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 @Controller
 @RequestMapping("/admin/users")
 public class AdminUserController {
@@ -20,10 +23,19 @@ public class AdminUserController {
     public String listUsers(Model model,
                             @RequestParam(name = "keyword", required = false) String keyword,
                             @RequestParam(name = "status", required = false) Boolean status,
-                            @RequestParam(name = "page", defaultValue = "1") int page) {
+                            @RequestParam(name = "page", defaultValue = "1") int page,
+                            @RequestParam(name = "sortField", defaultValue = "id") String sortField,
+                            @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir) {
 
         int pageSize = 5;
-        Page<User> pageUser = userService.getUsers(keyword, status, page, pageSize);
+        
+        // Create Sort object
+        Sort sort = sortDir.equalsIgnoreCase("asc") 
+                    ? Sort.by(sortField).ascending() 
+                    : Sort.by(sortField).descending();
+        
+        // Call service with Pageable that includes Sort
+        Page<User> pageUser = userService.getUsers(keyword, status, PageRequest.of(page - 1, pageSize, sort));
 
         model.addAttribute("users", pageUser.getContent());
         model.addAttribute("currentPage", page);
@@ -31,6 +43,11 @@ public class AdminUserController {
         model.addAttribute("totalItems", pageUser.getTotalElements());
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
+        
+        // Add sort attributes
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
 
         return "admin/users/list";
     }

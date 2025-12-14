@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments/layout :: layout(~{::content})}">
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-primary"><i class="fas fa-edit"></i> Chỉnh sửa Ngân sách #<span th:text="${budget.id}"></span></h3>
+    </div>
+
+    <div class="card shadow" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-body p-4">
+            <form th:action="@{/admin/budgets/save}" th:object="${budget}" method="post">
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-secondary">Người dùng (Read-only)</label>
+                        <input type="text" class="form-control bg-light" th:value="${budget.user.email}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
+                        <select th:field="*{category}" class="form-select" required>
+                            <option value="">-- Chọn danh mục --</option>
+                            <option th:each="cat : ${categories}"
+                                    th:value="${cat.id}"
+                                    th:text="${cat.name}"
+                                    th:selected="${budget.category != null and cat.id == budget.category.id}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Số tiền ngân sách <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" th:field="*{amount}" class="form-control" required min="0" step="1000">
+                            <select th:field="*{currency}" class="form-select" style="max-width: 120px;">
+                                <option value="VND">VND</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="JPY">JPY</option>
+                                <option value="KRW">KRW</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Ngày bắt đầu <span class="text-danger">*</span></label>
+                        <input type="date"
+                               class="form-control"
+                               id="startDate"
+                               name="startDate"
+                               th:value="${budget.startDate}"
+                               required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Ngày kết thúc <span class="text-danger">*</span></label>
+                        <input type="date"
+                               class="form-control"
+                               id="endDate"
+                               name="endDate"
+                               th:value="${budget.endDate}"
+                               required>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted">
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a th:href="@{/admin/budgets}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Hủy bỏ
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

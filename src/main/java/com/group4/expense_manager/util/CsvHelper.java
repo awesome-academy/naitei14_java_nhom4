@@ -1,9 +1,13 @@
 package com.group4.expense_manager.util;
 
 import com.group4.expense_manager.entity.Expense;
+import com.group4.expense_manager.entity.Income;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.entity.Category;
+import com.group4.expense_manager.entity.Budget;
 import com.group4.expense_manager.dto.response.UserCsvResponse;
+import com.group4.expense_manager.dto.request.IncomeCsvRequest;
+import com.group4.expense_manager.dto.request.BudgetCsvRequest;
 import org.apache.commons.csv.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.group4.expense_manager.entity.CategoryType;
@@ -67,6 +71,120 @@ public class CsvHelper {
             return users;
         } catch (IOException e) {
             throw new RuntimeException("Lỗi khi đọc file CSV User: " + e.getMessage());
+        }
+    }
+
+    public static ByteArrayInputStream incomesToCsv(List<Income> incomes) {
+        // Định nghĩa Header cho file CSV
+        final CSVFormat format = CSVFormat.DEFAULT.builder()
+                .setHeader("ID", "Date", "Source", "Category Name", "Amount", "Currency", "Is Recurring", "Note", "User Email")
+                .build();
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), format)) {
+
+            for (Income income : incomes) {
+                csvPrinter.printRecord(
+                        income.getId(),
+                        income.getIncomeDate(),
+                        income.getSource(),
+                        income.getCategory() != null ? income.getCategory().getName() : "N/A", // Xử lý nếu Category null
+                        income.getAmount(),
+                        income.getCurrency(),
+                        income.isRecurring(),
+                        income.getNote(),
+                        income.getUser().getEmail() // Quan trọng để map lại khi import
+                );
+            }
+
+            csvPrinter.flush();
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Error writing Income CSV data: " + e.getMessage());
+        }
+    }
+
+    public static List<IncomeCsvRequest> csvToIncomeDtos(InputStream is) {
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+             CSVParser csvParser = new CSVParser(fileReader,
+                     CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).setTrim(true).build())) {
+
+            List<IncomeCsvRequest> dtos = new ArrayList<>();
+            Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
+            for (CSVRecord csvRecord : csvRecords) {
+                IncomeCsvRequest dto = new IncomeCsvRequest();
+
+                // Đọc dữ liệu thô (Raw Data)
+                dto.setDate(csvRecord.get("Date"));
+                dto.setSource(csvRecord.get("Source"));
+                dto.setCategoryName(csvRecord.get("Category Name"));
+                dto.setAmount(csvRecord.get("Amount"));
+                dto.setCurrency(csvRecord.get("Currency"));
+                dto.setIsRecurring(csvRecord.get("Is Recurring"));
+                dto.setNote(csvRecord.get("Note"));
+                dto.setUserEmail(csvRecord.get("User Email"));
+
+                dtos.add(dto);
+            }
+            return dtos;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Fail to parse CSV file: " + e.getMessage());
+        }
+    }
+
+    public static ByteArrayInputStream budgetsToCsv(List<Budget> budgets) {
+        final CSVFormat format = CSVFormat.DEFAULT.builder()
+                .setHeader("ID", "Category Name", "Amount", "Currency", "Start Date", "End Date", "User Email")
+                .build();
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), format)) {
+
+            for (Budget budget : budgets) {
+                csvPrinter.printRecord(
+                        budget.getId(),
+                        budget.getCategory().getName(),
+                        budget.getAmount(),
+                        budget.getCurrency(),
+                        budget.getStartDate(),
+                        budget.getEndDate(),
+                        budget.getUser().getEmail()
+                );
+            }
+            csvPrinter.flush();
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Error writing Budget CSV data: " + e.getMessage());
+        }
+    }
+
+    // --- 8. IMPORT BUDGETS (Helper chỉ parse ra DTO) ---
+    public static List<BudgetCsvRequest> csvToBudgetDtos(InputStream is) {
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+             CSVParser csvParser = new CSVParser(fileReader,
+                     CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).setTrim(true).build())) {
+
+            List<BudgetCsvRequest> dtos = new ArrayList<>();
+            Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
+            for (CSVRecord csvRecord : csvRecords) {
+                BudgetCsvRequest dto = new BudgetCsvRequest();
+
+                dto.setCategoryName(csvRecord.get("Category Name"));
+                dto.setAmount(csvRecord.get("Amount"));
+                dto.setCurrency(csvRecord.get("Currency"));
+                dto.setStartDate(csvRecord.get("Start Date"));
+                dto.setEndDate(csvRecord.get("End Date"));
+                dto.setUserEmail(csvRecord.get("User Email"));
+
+                dtos.add(dto);
+            }
+            return dtos;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Fail to parse CSV file: " + e.getMessage());
         }
     }
 
