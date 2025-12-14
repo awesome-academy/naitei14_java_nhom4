@@ -7,9 +7,14 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-primary"><i class="fas fa-coins"></i> Quản lý Thu nhập</h2>
         <div class="btn-group" role="group">
-            <a th:href="@{/admin/csv/incomes/export}" class="btn btn-success">
-                <i class="fas fa-file-export"></i> Export CSV
-            </a>
+            <a th:href="@{/admin/csv/incomes/export(
+            keyword=${param.keyword}, 
+            startDate=${param.startDate}, 
+            endDate=${param.endDate}
+       )}" 
+       class="btn btn-success">
+        <i class="fas fa-file-csv"></i> Export CSV
+    </a>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
                 <i class="fas fa-file-import"></i> Import CSV
             </button>
