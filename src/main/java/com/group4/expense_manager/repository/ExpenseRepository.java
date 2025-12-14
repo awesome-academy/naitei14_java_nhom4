@@ -17,6 +17,13 @@ import org.springframework.data.repository.query.Param;
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
+    // ADMIN FILTER BY CATEGORY
+    Page<Expense> findByUserIdAndCategoryIdAndExpenseDateBetweenAndDescriptionContaining(Integer userId, Integer categoryId, LocalDate fromDate, LocalDate toDate, String description, Pageable pageable);
+    Page<Expense> findByUserIdAndCategoryIdAndExpenseDateBetween(Integer userId, Integer categoryId, LocalDate fromDate, LocalDate toDate, Pageable pageable);
+    Page<Expense> findByUserIdAndCategoryId(Integer userId, Integer categoryId, Pageable pageable);
+    Page<Expense> findByCategoryIdAndExpenseDateBetween(Integer categoryId, LocalDate fromDate, LocalDate toDate, Pageable pageable);
+    Page<Expense> findByCategoryId(Integer categoryId, Pageable pageable);
+
     Page<Expense> findByUser(User user, Pageable pageable);
 
     Page<Expense> findByUserAndDescriptionContainingAndAmountBetween(User user, String description, Double minAmount, Double maxAmount, Pageable pageable);
@@ -38,4 +45,15 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     List<Expense> findByUser(User user);
 
     long countByUser(User user);
+
+    // ADMIN QUERIES
+    Page<Expense> findByUserIdAndExpenseDateBetweenAndDescriptionContaining(Integer userId, LocalDate fromDate, LocalDate toDate, String description, Pageable pageable);
+
+    Page<Expense> findByUserIdAndExpenseDateBetween(Integer userId, LocalDate fromDate, LocalDate toDate, Pageable pageable);
+
+    Page<Expense> findByUserId(Integer userId, Pageable pageable);
+
+    Page<Expense> findByExpenseDateBetween(LocalDate fromDate, LocalDate toDate, Pageable pageable);
+
+    Page<Expense> findByDescriptionContaining(String description, Pageable pageable);
 }
