@@ -2,9 +2,13 @@ package com.group4.expense_manager.controller.admin;
 
 import com.group4.expense_manager.service.CsvService;
 import com.group4.expense_manager.util.CsvHelper;
+
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Sort;
 
 
 @Controller
@@ -25,9 +30,17 @@ public class AdminCsvController {
     private CsvService csvService;
 
     @GetMapping("/users/export")
-    public ResponseEntity<Resource> exportUsers() {
+    public ResponseEntity<Resource> exportUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean status,
+            @RequestParam(defaultValue = "id,asc") String[] sort
+    ) {
         String filename = "users_report.csv";
-        InputStreamResource file = new InputStreamResource(csvService.loadUserCsv());
+
+        Sort sortObj = Sort.by(Sort.Direction.fromString(sort[1]), sort[0]);
+        InputStreamResource file = new InputStreamResource(
+                csvService.loadUserCsv(keyword, status, sortObj)
+        );
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
@@ -51,10 +64,11 @@ public class AdminCsvController {
     }
 
     @GetMapping("/incomes/export")
-    public ResponseEntity<Resource> exportIncomes() {
+    public ResponseEntity<Resource> exportIncomes(@RequestParam(required = false) Integer userId,@RequestParam(required = false) String keyword,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         String filename = "incomes_data.csv";
-        InputStreamResource file = new InputStreamResource(csvService.loadIncomeCsv());
-
+        InputStreamResource file = new InputStreamResource(csvService.loadIncomeCsv(userId, keyword, startDate, endDate));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .contentType(MediaType.parseMediaType("application/csv"))
@@ -78,9 +92,14 @@ public class AdminCsvController {
     }
 
     @GetMapping("/budgets/export")
-    public ResponseEntity<Resource> exportBudgets() {
+    public ResponseEntity<Resource> exportBudgets(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String keyword
+    ) {
         String filename = "budgets_data.csv";
-        InputStreamResource file = new InputStreamResource(csvService.loadBudgetCsv());
+        InputStreamResource file = new InputStreamResource(csvService.loadBudgetCsv(userId, startDate, endDate, keyword));
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
@@ -93,12 +112,12 @@ public class AdminCsvController {
         if (CsvHelper.hasCSVFormat(file)) {
             try {
                 csvService.saveBudgetsFromCsv(file);
-                ra.addFlashAttribute("message", "Import Budgets thành công: " + file.getOriginalFilename());
+                ra.addFlashAttribute("message", "Budget data imported successfully: " + file.getOriginalFilename());
             } catch (Exception e) {
-                ra.addFlashAttribute("error", "Lỗi import file: " + e.getMessage());
+                ra.addFlashAttribute("error", "Failed to upload Budget file: " + e.getMessage());
             }
         } else {
-            ra.addFlashAttribute("error", "Vui lòng chọn file định dạng CSV!");
+            ra.addFlashAttribute("error", "Please upload a valid CSV file!");
         }
         return "redirect:/admin/budgets";
     }

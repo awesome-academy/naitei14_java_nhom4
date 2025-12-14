@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments/layout :: layout(~{::content})}">
+
+<body>
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-primary">
+                <i class="fas fa-folder"></i>
+                <span
+                    th:text="${category.id == null ? 'Thêm Danh mục Mới' : 'Chỉnh sửa Danh mục #' + category.id}"></span>
+            </h3>
+            <a th:href="@{/admin/categories}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+
+        <div class="card shadow" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-body p-4">
+                <form th:action="@{/admin/categories/save}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="id" th:value="${category.id}" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên danh mục <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" th:value="${category.name}"
+                            placeholder="Ví dụ: Ăn uống, Giải trí, Lương..." required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Loại danh mục <span class="text-danger">*</span></label>
+                        <select name="type" class="form-select" required>
+                            <option value="">-- Chọn loại --</option>
+                            <option th:each="t : ${categoryTypes}" th:value="${t}"
+                                th:text="${t == T(com.group4.expense_manager.entity.CategoryType).expense ? 'Chi tiêu' : 'Thu nhập'}"
+                                th:selected="${category.type == t}"></option>
+                        </select>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Chi tiêu: cho các khoản chi phí. Thu nhập: cho các nguồn
+                            thu.
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả</label>
+                        <textarea name="description" class="form-control" rows="4" th:text="${category.description}"
+                            placeholder="Mô tả chi tiết về danh mục này..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Icon/Hình ảnh</label>
+
+                        <div th:if="${category.icon}" class="mb-3">
+                            <label class="text-muted small">Icon hiện tại:</label><br>
+                            <img th:src="${category.icon}" alt="Current Icon"
+                                style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px; border: 2px solid #dee2e6;">
+                        </div>
+
+                        <input type="file" name="iconFile" class="form-control" accept="image/*" id="iconFileInput">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Chọn file ảnh để tải lên (PNG, JPG, SVG). Để trống nếu
+                            không muốn thay đổi.
+                        </small>
+
+                        <div class="mt-2" id="imagePreview" style="display: none;">
+                            <label class="text-muted small">Xem trước:</label><br>
+                            <img id="previewImg" src="" alt="Preview"
+                                style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px; border: 2px solid #dee2e6;">
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-globe"></i> <strong>Danh mục Hệ thống:</strong>
+                        Danh mục này sẽ là danh mục toàn cục và có sẵn cho tất cả người dùng trong hệ thống.
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a th:href="@{/admin/categories}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Hủy
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i>
+                            <span th:text="${category.id == null ? 'Tạo danh mục' : 'Cập nhật'}"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // Image preview
+            document.getElementById('iconFileInput').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        document.getElementById('previewImg').src = e.target.result;
+                        document.getElementById('imagePreview').style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    document.getElementById('imagePreview').style.display = 'none';
+                }
+            });
+        </script>
+
+    </div>
+</body>
+
+</html>

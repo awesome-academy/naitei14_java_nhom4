@@ -33,6 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.format.DateTimeParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 @Service
 public class CsvService {
     @Autowired private UserRepository userRepository;
@@ -41,10 +45,24 @@ public class CsvService {
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private BudgetRepository budgetRepository;
+    @Autowired private IncomeService incomeService;
+    @Autowired private BudgetService budgetService;
+    @Autowired private UserService userService;
 
-    public ByteArrayInputStream loadUserCsv() {
-        List<User> users = userRepository.findAll();
-                List<UserCsvResponse> userCsvResponses = new ArrayList<>();
+    
+
+    public ByteArrayInputStream loadUserCsv(
+            String keyword,
+            Boolean status,
+            Sort sort
+    ) {
+        Page<User> pageUser = userService.getUsers(
+                keyword,
+                status,
+                PageRequest.of(0, Integer.MAX_VALUE, sort)
+        );
+        List<User> users = pageUser.getContent();
+        List<UserCsvResponse> userCsvResponses = new ArrayList<>();
 
         for (User user : users) {
             Double totalExp = expenseRepository.sumAmountByUserId(user.getId());
@@ -131,8 +149,18 @@ public class CsvService {
         }
     }
 
-    public ByteArrayInputStream loadBudgetCsv() {
-        List<Budget> budgets = budgetRepository.findAll();
+    public ByteArrayInputStream loadBudgetCsv(Integer userId,
+                                              LocalDate startDate,
+                                              LocalDate endDate,
+                                              String keyword) {
+        Page<Budget> budgetPage = budgetService.getAllBudgetsForAdmin(
+                userId,
+                startDate,
+                endDate,
+                keyword,
+                Pageable.unpaged() // <-- Lấy TOÀN BỘ dữ liệu phù hợp với lọc
+        );
+        List<Budget> budgets = budgetPage.getContent();
         return CsvHelper.budgetsToCsv(budgets);
     }
 
@@ -182,9 +210,61 @@ public class CsvService {
         }
     }
 
-    public ByteArrayInputStream loadIncomeCsv() {
-        List<Income> incomes = incomeRepository.findAll();
-        return CsvHelper.incomesToCsv(incomes);
+    public ByteArrayInputStream loadIncomeCsv(Integer userId, 
+            String keyword, 
+            LocalDate startDate, 
+            LocalDate endDate) {
+        // List<Income> incomes = incomeRepository.findAll();
+        Page<Income> incomePage = incomeService.getAllIncomesForAdmin(
+            userId, 
+            startDate, 
+            endDate, 
+            keyword,
+            Pageable.unpaged() // <-- Yếu tố quyết định để lấy TOÀN BỘ
+        );
+        return CsvHelper.incomesToCsv(incomePage.getContent());
+    }
+
+    // Category CSV Methods
+    public ByteArrayInputStream loadCategoryCsv() {
+        List<Category> categories = categoryRepository.findByUserIsNull(
+                org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+        ).getContent();
+        return CsvHelper.categoriesToCsv(categories);
+    }
+
+    public void saveCategoriesFromCsv(MultipartFile file) {
+        try {
+            if (!CsvHelper.hasCSVFormat(file)) {
+                throw new RuntimeException("File không đúng định dạng CSV");
+            }
+            
+            List<Category> categories = CsvHelper.csvToCategories(file.getInputStream());
+            List<Category> categoriesToSave = new ArrayList<>();
+            
+            for (Category category : categories) {
+                // Check if category with same name and type already exists
+                org.springframework.data.domain.Page<Category> allCategories = categoryRepository.findByUserIsNull(
+                        org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+                );
+                
+                boolean exists = allCategories.getContent().stream().anyMatch(c -> 
+                    c.getName().equalsIgnoreCase(category.getName()) && 
+                    c.getType() == category.getType()
+                );
+                
+                if (!exists) {
+                    categoriesToSave.add(category);
+                }
+            }
+            
+            if (!categoriesToSave.isEmpty()) {
+                categoryRepository.saveAll(categoriesToSave);
+            }
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi lưu CSV data: " + e.getMessage());
+        }
     }
 
 }
