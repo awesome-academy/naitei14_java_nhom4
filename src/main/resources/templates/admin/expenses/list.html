@@ -134,12 +134,13 @@
 
                         <th>Danh mục</th>
                         <th>Ghi chú</th>
+                        <th>Loại</th>
                         <th class="text-center" style="width: 150px;">Hành động</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:if="${#lists.isEmpty(expenses)}">
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="9" class="text-center py-5 text-muted">
                             <i class="fas fa-inbox fa-3x mb-3"></i><br>
                             Không tìm thấy dữ liệu chi tiêu nào.
                         </td>
@@ -174,6 +175,13 @@
                                   th:text="${#strings.length(exp.note) > 15 ? #strings.substring(exp.note, 0, 15) + '...' : exp.note}"
                                   th:title="${exp.note}"
                                   class="text-muted small"></span>
+                        </td>
+
+                        <td>
+                            <span th:if="${exp.isRecurring}" class="badge bg-warning text-dark" title="Lặp lại">
+                                <i class="fas fa-sync"></i> <span th:text="${exp.recurringInterval}"></span>
+                            </span>
+                            <span th:unless="${exp.isRecurring}" class="badge bg-light text-secondary border">Một lần</span>
                         </td>
 
                         <td class="text-center">
