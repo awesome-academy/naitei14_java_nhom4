@@ -37,7 +37,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
     // ========================================================================
     @Query("""
         SELECT b FROM Budget b
-        WHERE (:user IS NULL OR b.user = :user)
+                WHERE (:category IS NULL OR b.category = :category)
           AND (:start IS NULL OR b.startDate >= :start)
           AND (:end IS NULL OR b.endDate <= :end)
           AND (
@@ -48,7 +48,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
           )
         """)
     Page<Budget> searchBudgetsForAdmin(
-            @Param("user") User user,
+            @Param("category") Category category,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end,
             @Param("keyword") String keyword,
