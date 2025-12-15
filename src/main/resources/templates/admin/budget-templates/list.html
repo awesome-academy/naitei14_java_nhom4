@@ -38,17 +38,6 @@
                            th:value="${keyword}" oninput="debounceSubmit()">
                 </div>
 
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Tháng</label>
-                    <select name="month" class="form-select" onchange="submitForm()">
-                        <option value="">-- Tất cả tháng --</option>
-                        <option th:each="m : ${#numbers.sequence(1, 12)}"
-                                th:value="${m}"
-                                th:text="'Tháng ' + ${m}"
-                                th:selected="${m == month}"></option>
-                    </select>
-                </div>
-
                 <div class="col-md-2 d-flex align-items-end gap-2">
                     <a th:href="@{/admin/budget-templates}" class="btn btn-secondary w-100" title="Đặt lại bộ lọc">
                         <i class="fas fa-sync"></i> Reset
@@ -65,7 +54,7 @@
                     <thead class="table-dark">
                     <tr>
                         <th>
-                            <a th:href="@{/admin/budget-templates(page=${currentPage}, sortField='id', sortDir=${reverseSortDir}, keyword=${keyword}, month=${month})}"
+                            <a th:href="@{/admin/budget-templates(page=${currentPage}, sortField='id', sortDir=${reverseSortDir}, keyword=${keyword})}"
                                class="text-white text-decoration-none">
                                 ID <i th:if="${sortField == 'id'}"
                                       th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
@@ -73,21 +62,14 @@
                         </th>
 
                         <th>
-                            <a th:href="@{/admin/budget-templates(page=${currentPage}, sortField='name', sortDir=${reverseSortDir}, keyword=${keyword}, month=${month})}"
+                            <a th:href="@{/admin/budget-templates(page=${currentPage}, sortField='name', sortDir=${reverseSortDir}, keyword=${keyword})}"
                                class="text-white text-decoration-none">
                                 Tên mẫu <i th:if="${sortField == 'name'}"
                                            th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
                             </a>
                         </th>
 
-                        <th>
-                            <a th:href="@{/admin/budget-templates(page=${currentPage}, sortField='month', sortDir=${reverseSortDir}, keyword=${keyword}, month=${month})}"
-                               class="text-white text-decoration-none">
-                                Tháng <i th:if="${sortField == 'month'}"
-                                         th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
-                            </a>
-                        </th>
-
+                        <th>Danh mục</th>
                         <th>Mô tả</th>
                         <th>Ngày tạo</th>
                         <th class="text-center" style="width: 180px;">Hành động</th>
@@ -105,7 +87,13 @@
                         <td><span class="badge bg-secondary" th:text="${template.id}"></span></td>
                         <td class="fw-semibold" th:text="${template.name}"></td>
                         <td>
-                            <span class="badge bg-primary">Tháng [[${template.month}]]</span>
+                            <span th:if="${template.items != null and !template.items.isEmpty()}"
+                                  th:each="item, iterStat : ${template.items}">
+                                <span class="badge bg-info text-dark" th:text="${item.category.name}"></span>
+                                <span th:if="${!iterStat.last}">, </span>
+                            </span>
+                            <span th:if="${template.items == null or template.items.isEmpty()}" 
+                                  class="text-muted fst-italic">---</span>
                         </td>
                         <td>
                             <span th:if="${template.description}"
@@ -147,9 +135,6 @@
                                                 <div class="d-flex justify-content-between">
                                                     <strong>Tên mẫu:</strong> <span th:text="${template.name}"></span>
                                                 </div>
-                                                <div class="d-flex justify-content-between">
-                                                    <strong>Tháng:</strong> <span th:text="${template.month}"></span>
-                                                </div>
                                             </div>
                                             <small class="text-danger fw-bold"><i class="fas fa-exclamation-triangle"></i> Hành động này không thể hoàn tác!</small>
                                         </div>
@@ -175,7 +160,7 @@
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/budget-templates(page=${currentPage - 1}, keyword=${keyword}, month=${month}, sortField=${sortField}, sortDir=${sortDir})}">
+                        <a class="page-link" th:href="@{/admin/budget-templates(page=${currentPage - 1}, keyword=${keyword}, sortField=${sortField}, sortDir=${sortDir})}">
                             Trước
                         </a>
                     </li>
@@ -183,12 +168,12 @@
                     <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
                         th:classappend="${currentPage == i} ? 'active'">
                         <a class="page-link"
-                           th:href="@{/admin/budget-templates(page=${i}, keyword=${keyword}, month=${month}, sortField=${sortField}, sortDir=${sortDir})}"
+                           th:href="@{/admin/budget-templates(page=${i}, keyword=${keyword}, sortField=${sortField}, sortDir=${sortDir})}"
                            th:text="${i}"></a>
                     </li>
 
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/budget-templates(page=${currentPage + 1}, keyword=${keyword}, month=${month}, sortField=${sortField}, sortDir=${sortDir})}">
+                        <a class="page-link" th:href="@{/admin/budget-templates(page=${currentPage + 1}, keyword=${keyword}, sortField=${sortField}, sortDir=${sortDir})}">
                             Sau
                         </a>
                     </li>

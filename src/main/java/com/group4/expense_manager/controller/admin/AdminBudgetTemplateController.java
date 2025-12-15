@@ -2,6 +2,7 @@ package com.group4.expense_manager.controller.admin;
 
 import com.group4.expense_manager.dto.request.BudgetTemplateRequest;
 import com.group4.expense_manager.entity.BudgetTemplate;
+import com.group4.expense_manager.entity.BudgetTemplateItem;
 import com.group4.expense_manager.entity.CategoryType;
 import com.group4.expense_manager.repository.CategoryRepository;
 import com.group4.expense_manager.service.BudgetTemplateService;
@@ -15,6 +16,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/admin/budget-templates")
@@ -32,18 +35,17 @@ public class AdminBudgetTemplateController {
     
     // --- LIST & FILTER ---
     @GetMapping
-    public String listTemplates(
+        public String listTemplates(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer month,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDir,
             Model model
-    ) {
+        ) {
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
         Page<BudgetTemplate> templatePage = budgetTemplateService.listTemplates(
-                keyword, month, PageRequest.of(page - 1, size, sort)
+            keyword, PageRequest.of(page - 1, size, sort)
         );
         
         model.addAttribute("templates", templatePage.getContent());
@@ -53,7 +55,6 @@ public class AdminBudgetTemplateController {
         
         // Filter params
         model.addAttribute("keyword", keyword);
-        model.addAttribute("month", month);
         
         // Sort params
         model.addAttribute("sortField", sortField);
@@ -70,6 +71,8 @@ public class AdminBudgetTemplateController {
     public String showCreateForm(Model model) {
         model.addAttribute("template", new BudgetTemplateRequest());
         model.addAttribute("categories", categoryRepository.findByType(CategoryType.expense));
+        model.addAttribute("firstCategoryId", null);
+        model.addAttribute("firstAmount", null);
         model.addAttribute("isEdit", false);
         model.addAttribute("pageTitle", "Tạo Mẫu Ngân sách mới");
         return "admin/budget-templates/form";
@@ -88,23 +91,30 @@ public class AdminBudgetTemplateController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("categories", categoryRepository.findByType(CategoryType.expense));
             model.addAttribute("isEdit", false);
+            model.addAttribute("firstCategoryId", firstValue(categoryIds));
+            model.addAttribute("firstAmount", firstValue(amounts));
             return "admin/budget-templates/form";
         }
         
         try {
+            // Không dùng tháng, giữ mặc định = 1 cho entity
+            request.setMonth(1);
+            
             // Xử lý items từ form
+            java.util.List<BudgetTemplateRequest.BudgetTemplateItemRequest> items = new java.util.ArrayList<>();
             if (categoryIds != null && amounts != null) {
-                java.util.List<BudgetTemplateRequest.BudgetTemplateItemRequest> items = new java.util.ArrayList<>();
-                for (int i = 0; i < categoryIds.length; i++) {
+                int length = Math.min(categoryIds.length, amounts.length);
+                for (int i = 0; i < length; i++) {
                     if (categoryIds[i] != null && amounts[i] != null) {
                         BudgetTemplateRequest.BudgetTemplateItemRequest item = new BudgetTemplateRequest.BudgetTemplateItemRequest();
                         item.setCategoryId(categoryIds[i]);
                         item.setDefaultAmount(amounts[i]);
                         items.add(item);
+                        break; // chỉ 1 category
                     }
                 }
-                request.setItems(items);
             }
+            request.setItems(items);
             
             budgetTemplateService.createTemplate(request);
             ra.addFlashAttribute("message", "Tạo mẫu ngân sách thành công!");
@@ -126,9 +136,14 @@ public class AdminBudgetTemplateController {
             request.setName(template.getName());
             request.setMonth(template.getMonth());
             request.setDescription(template.getDescription());
+                BudgetTemplateItem firstItem = template.getItems() != null && !template.getItems().isEmpty()
+                    ? template.getItems().iterator().next()
+                    : null;
             
             model.addAttribute("template", request);
             model.addAttribute("templateEntity", template);
+                model.addAttribute("firstCategoryId", firstItem != null && firstItem.getCategory() != null ? firstItem.getCategory().getId() : null);
+                model.addAttribute("firstAmount", firstItem != null ? firstItem.getDefaultAmount() : null);
             model.addAttribute("categories", categoryRepository.findByType(CategoryType.expense));
             model.addAttribute("isEdit", true);
             model.addAttribute("templateId", id);
@@ -156,23 +171,29 @@ public class AdminBudgetTemplateController {
             model.addAttribute("categories", categoryRepository.findByType(CategoryType.expense));
             model.addAttribute("isEdit", true);
             model.addAttribute("templateId", id);
+            model.addAttribute("firstCategoryId", firstValue(categoryIds));
+            model.addAttribute("firstAmount", firstValue(amounts));
             return "admin/budget-templates/form";
         }
         
         try {
+            request.setMonth(1);
+            
             // Xử lý items từ form
+            java.util.List<BudgetTemplateRequest.BudgetTemplateItemRequest> items = new java.util.ArrayList<>();
             if (categoryIds != null && amounts != null) {
-                java.util.List<BudgetTemplateRequest.BudgetTemplateItemRequest> items = new java.util.ArrayList<>();
-                for (int i = 0; i < categoryIds.length; i++) {
+                int length = Math.min(categoryIds.length, amounts.length);
+                for (int i = 0; i < length; i++) {
                     if (categoryIds[i] != null && amounts[i] != null) {
                         BudgetTemplateRequest.BudgetTemplateItemRequest item = new BudgetTemplateRequest.BudgetTemplateItemRequest();
                         item.setCategoryId(categoryIds[i]);
                         item.setDefaultAmount(amounts[i]);
                         items.add(item);
+                        break; // chỉ 1 category
                     }
                 }
-                request.setItems(items);
             }
+            request.setItems(items);
             
             budgetTemplateService.updateTemplate(id, request);
             ra.addFlashAttribute("message", "Cập nhật mẫu ngân sách thành công!");
@@ -188,7 +209,14 @@ public class AdminBudgetTemplateController {
     public String viewDetail(@PathVariable Integer id, Model model, RedirectAttributes ra) {
         try {
             BudgetTemplate template = budgetTemplateService.getTemplate(id);
+            java.math.BigDecimal totalDefaultAmount = java.util.Optional.ofNullable(template.getItems())
+                    .orElse(java.util.Collections.emptySet())
+                    .stream()
+                    .map(BudgetTemplateItem::getDefaultAmount)
+                    .filter(java.util.Objects::nonNull)
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
             model.addAttribute("template", template);
+            model.addAttribute("totalDefaultAmount", totalDefaultAmount);
             model.addAttribute("pageTitle", "Chi tiết Mẫu Ngân sách");
             return "admin/budget-templates/detail";
         } catch (Exception e) {
@@ -207,5 +235,21 @@ public class AdminBudgetTemplateController {
             ra.addFlashAttribute("error", "Lỗi khi xóa: " + e.getMessage());
         }
         return "redirect:/admin/budget-templates";
+    }
+
+    private Integer firstValue(Integer[] values) {
+        if (values == null) return null;
+        for (Integer v : values) {
+            if (v != null) return v;
+        }
+        return null;
+    }
+
+    private BigDecimal firstValue(java.math.BigDecimal[] values) {
+        if (values == null) return null;
+        for (java.math.BigDecimal v : values) {
+            if (v != null) return v;
+        }
+        return null;
     }
 }
