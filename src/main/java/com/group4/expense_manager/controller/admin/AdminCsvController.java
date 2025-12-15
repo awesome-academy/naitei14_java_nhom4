@@ -121,4 +121,41 @@ public class AdminCsvController {
         }
         return "redirect:/admin/budgets";
     }
+
+    @GetMapping("/expenses/export")
+    public ResponseEntity<Resource> exportExpenses(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String keyword
+    ) {
+        String filename = "expenses_report.csv";
+
+        // Gọi Service với các tham số lọc từ URL
+        InputStreamResource file = new InputStreamResource(
+                csvService.exportExpenseCsv(userId, categoryId, startDate, endDate, keyword )
+        );
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(file);
+    }
+
+    // --- 10. IMPORT EXPENSES ---
+    @PostMapping("/expenses/import")
+    public String importExpenses(@RequestParam("file") MultipartFile file, RedirectAttributes ra) {
+        if (CsvHelper.hasCSVFormat(file)) {
+            try {
+                csvService.saveExpensesFromCsv(file);
+                ra.addFlashAttribute("message", "Import Expenses successfully: " + file.getOriginalFilename());
+            } catch (Exception e) {
+                ra.addFlashAttribute("error", "Failed to import: " + e.getMessage());
+            }
+        } else {
+            ra.addFlashAttribute("error", "Please upload a valid CSV file!");
+        }
+        return "redirect:/admin/expenses"; // Redirect về trang danh sách Expense
+    }
 }
