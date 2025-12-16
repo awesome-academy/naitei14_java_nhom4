@@ -1,8 +1,10 @@
 
 package com.group4.expense_manager.controller.client;
 
+import com.group4.expense_manager.dto.response.ExpenseResponse;
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.entity.User;
+import com.group4.expense_manager.mapper.ExpenseMapper;
 import com.group4.expense_manager.service.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +28,12 @@ import java.time.LocalDate;
 public class ExpenseController {
 
     private final ExpenseService expenseService;
+    private final ExpenseMapper expenseMapper;
 
     @Autowired
-    public ExpenseController(ExpenseService expenseService) {
+    public ExpenseController(ExpenseService expenseService, ExpenseMapper expenseMapper) {
         this.expenseService = expenseService;
+        this.expenseMapper = expenseMapper;
     }
 
     // ========================================================================
@@ -46,10 +50,10 @@ public class ExpenseController {
      * @param search     (Optional) Từ khóa tìm kiếm.
      * @param minAmount  (Optional) Số tiền tối thiểu.
      * @param maxAmount  (Optional) Số tiền tối đa.
-     * @return Page<Expense>
+     * @return Page<ExpenseResponse>
      */
     @GetMapping
-    public ResponseEntity<Page<Expense>> listExpenses(
+    public ResponseEntity<Page<ExpenseResponse>> listExpenses(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -64,7 +68,7 @@ public class ExpenseController {
         Page<Expense> expenses = expenseService.filterExpensesOfUser(
                 user, categoryId, fromDate, toDate, pageable, search, minAmount, maxAmount
         );
-        return ResponseEntity.ok(expenses);
+        return ResponseEntity.ok(expenses.map(expenseMapper::toResponse));
     }
 
     // ========================================================================
@@ -75,12 +79,12 @@ public class ExpenseController {
      * Service sẽ kiểm tra xem Expense ID này có thuộc về User này không.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Expense> getExpenseDetail(
+    public ResponseEntity<ExpenseResponse> getExpenseDetail(
             @PathVariable Integer id,
             @AuthenticationPrincipal User user
     ) {
         Expense expense = expenseService.getExpenseOfUser(id, user);
-        return ResponseEntity.ok(expense);
+        return ResponseEntity.ok(expenseMapper.toResponse(expense));
     }
 
     // ========================================================================
@@ -92,12 +96,12 @@ public class ExpenseController {
      * @return HTTP 201 Created kèm dữ liệu vừa tạo.
      */
     @PostMapping
-    public ResponseEntity<Expense> createExpense(
+    public ResponseEntity<ExpenseResponse> createExpense(
             @AuthenticationPrincipal User user,
             @RequestBody @Valid Expense expense
     ) {
         Expense created = expenseService.createExpense(user, expense);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(expenseMapper.toResponse(created));
     }
 
     // ========================================================================
@@ -110,13 +114,13 @@ public class ExpenseController {
      * @return HTTP 200 OK kèm dữ liệu đã sửa.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Expense> updateExpense(
+    public ResponseEntity<ExpenseResponse> updateExpense(
             @PathVariable Integer id,
             @AuthenticationPrincipal User user,
             @RequestBody @Valid Expense expense
     ) {
         Expense updated = expenseService.updateExpense(id, user, expense);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(expenseMapper.toResponse(updated));
     }
 
     // ========================================================================
