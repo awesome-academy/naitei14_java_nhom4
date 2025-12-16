@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.group4.expense_manager.service.EmailService;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -31,6 +32,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         this.categoryRepository = categoryRepository;
         this.budgetRepository = budgetRepository;
     }
+
+    @Autowired
+    private EmailService emailService;
 
     // ===============================
     // PHẦN 1: CLIENT METHODS
@@ -87,19 +91,16 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public void checkBudgetAlert(Expense newExpense) {
-        // Chỉ cảnh báo nếu giao dịch có Category
         if (newExpense.getCategory() == null) return;
 
-        // 1. Tìm Ngân sách áp dụng
         Budget budget = budgetRepository.findActiveBudgetForExpense(
                 newExpense.getUser().getId(),
                 newExpense.getCategory().getId(),
                 newExpense.getExpenseDate()
         ).orElse(null);
 
-        if (budget == null) return; // Không có ngân sách nào áp dụng
+        if (budget == null) return;
 
-        // 2. Tính tổng chi tiêu (cộng cả giao dịch mới này)
         BigDecimal totalSpent = expenseRepository.sumExpensesByBudgetPeriod(
                 budget.getUser().getId(),
                 budget.getCategory().getId(),
@@ -107,19 +108,28 @@ public class ExpenseServiceImpl implements ExpenseService {
                 budget.getEndDate()
         ).orElse(BigDecimal.ZERO);
 
-        // 3. Kiểm tra và Cảnh báo
         if (totalSpent.compareTo(budget.getAmount()) > 0) {
-            // Log hoặc gửi thông báo (Notification)
+            String subject = "Cảnh báo vượt hạn mức ngân sách: " + budget.getCategory().getName();
             String message = String.format(
-                    "CẢNH BÁO: Chi tiêu cho danh mục '%s' đã vượt Ngân sách! Đã chi %.2f / Ngân sách %.2f.",
+                    "Chào %s,\n\nBạn đã chi tiêu vượt quá hạn mức cho danh mục '%s'.\n" +
+                            "- Ngân sách đặt ra: %.2f\n" +
+                            "- Tổng chi tiêu hiện tại: %.2f\n" +
+                            "- Ngày giao dịch: %s\n\n" +
+                            "Vui lòng kiểm tra lại kế hoạch chi tiêu của mình!",
+                    newExpense.getUser().getName(),
                     budget.getCategory().getName(),
+                    budget.getAmount(),
                     totalSpent,
-                    budget.getAmount()
+                    newExpense.getExpenseDate()
             );
-            System.err.println(message); // Trong thực tế, bạn sẽ lưu vào bảng thông báo
 
-            // Tùy chọn: trả về một DTO cảnh báo cho API biết
-            // throw new BudgetExceededException(message); // Nếu muốn ngăn cản giao dịch
+            // Gửi email
+            try {
+                emailService.sendSimpleEmail(newExpense.getUser().getEmail(), subject, message);
+                System.out.println("Email cảnh báo đã được gửi tới: " + newExpense.getUser().getEmail());
+            } catch (Exception e) {
+                System.err.println("Lỗi khi gửi email: " + e.getMessage());
+            }
         }
     }
 
