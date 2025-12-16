@@ -3,10 +3,12 @@ package com.group4.expense_manager.service.impl;
 import com.group4.expense_manager.annotation.LogActivity;
 import com.group4.expense_manager.dto.request.CreateBudgetRequest;
 import com.group4.expense_manager.entity.Budget;
+import com.group4.expense_manager.entity.BudgetTemplate;
 import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.CategoryType;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.repository.BudgetRepository;
+import com.group4.expense_manager.repository.BudgetTemplateRepository;
 import com.group4.expense_manager.repository.CategoryRepository;
 import com.group4.expense_manager.repository.UserRepository;
 import com.group4.expense_manager.service.BudgetService;
@@ -18,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BudgetServiceImpl implements BudgetService {
@@ -25,14 +29,17 @@ public class BudgetServiceImpl implements BudgetService {
     private final BudgetRepository budgetRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final BudgetTemplateRepository budgetTemplateRepository;
     
     @Autowired
     public BudgetServiceImpl(BudgetRepository budgetRepository, 
                              CategoryRepository categoryRepository,
-                             UserRepository userRepository) {
+                             UserRepository userRepository,
+                             BudgetTemplateRepository budgetTemplateRepository) {
         this.budgetRepository = budgetRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
+        this.budgetTemplateRepository = budgetTemplateRepository;
     }
     
     @Override
@@ -119,6 +126,39 @@ public class BudgetServiceImpl implements BudgetService {
         Budget budget = getBudget(budgetId, user);
         budgetRepository.delete(budget);
     }
+
+    @Override
+    @Transactional
+    public List<Budget> applyTemplate(User user, Integer templateId, YearMonth month) {
+        if (month == null) {
+            throw new IllegalArgumentException("Month is required");
+        }
+
+        BudgetTemplate template = budgetTemplateRepository.findByIdWithItems(templateId)
+                .orElseThrow(() -> new RuntimeException("Template not found"));
+
+        if (template.getItems() == null || template.getItems().isEmpty()) {
+            throw new RuntimeException("Template has no items");
+        }
+
+        LocalDate startDate = month.atDay(1);
+        LocalDate endDate = month.atEndOfMonth();
+
+        List<Budget> budgets = template.getItems().stream()
+                .map(item -> {
+                    Budget budget = new Budget();
+                    budget.setUser(user);
+                    budget.setCategory(item.getCategory());
+                    budget.setAmount(item.getDefaultAmount());
+                    budget.setCurrency("VND");
+                    budget.setStartDate(startDate);
+                    budget.setEndDate(endDate);
+                    return budget;
+                })
+                .collect(Collectors.toList());
+
+        return budgetRepository.saveAll(budgets);
+    }
     
     // Helper method
     private void mapRequestToEntity(CreateBudgetRequest request, Budget budget, User user) {
@@ -157,13 +197,13 @@ public class BudgetServiceImpl implements BudgetService {
     // ========================================================================
     
     @Override
-    public Page<Budget> getAllBudgetsForAdmin(Integer userId, LocalDate startDate, LocalDate endDate, 
+    public Page<Budget> getAllBudgetsForAdmin(Integer categoryId, LocalDate startDate, LocalDate endDate, 
                                                String keyword, Pageable pageable) {
-        User user = null;
-        if (userId != null) {
-            user = userRepository.findById(userId).orElse(null);
+        Category category = null;
+        if (categoryId != null) {
+            category = categoryRepository.findById(categoryId).orElse(null);
         }
-        return budgetRepository.searchBudgetsForAdmin(user, startDate, endDate, keyword, pageable);
+        return budgetRepository.searchBudgetsForAdmin(category, startDate, endDate, keyword, pageable);
     }
     
     @Override

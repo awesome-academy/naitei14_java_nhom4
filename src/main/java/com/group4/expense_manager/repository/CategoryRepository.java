@@ -36,7 +36,8 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
 	Page<Category> findByUserIsNullAndNameContainingIgnoreCase(String keyword, Pageable pageable);
 	Page<Category> findByUserIsNullAndTypeAndNameContainingIgnoreCase(CategoryType type, String keyword, Pageable pageable);
 
-	
+
 	// Lấy danh sách category theo type (cho admin)
 	List<Category> findByType(CategoryType type);
+
 }

@@ -45,7 +45,7 @@ public class AdminBudgetController {
             @RequestParam(defaultValue = "10") int size,
 
             // Filter Params
-            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String keyword,
@@ -61,22 +61,22 @@ public class AdminBudgetController {
 
         // 2. Gọi Service (PageRequest bắt đầu từ 0)
         Page<Budget> budgetPage = budgetService.getAllBudgetsForAdmin(
-                userId, startDate, endDate, keyword,
+            categoryId, startDate, endDate, keyword,
                 PageRequest.of(page - 1, size, sort)
         );
 
-        // 3. Lấy danh sách Client cho dropdown
-        List<User> users = userRepository.findByRoleIgnoreCase("CLIENT");
+        // 3. Lấy danh sách Category (expense) cho dropdown
+        var categories = categoryRepository.findByType(CategoryType.expense);
 
         // 4. Đổ dữ liệu ra View
         model.addAttribute("budgets", budgetPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", budgetPage.getTotalPages());
         model.addAttribute("totalItems", budgetPage.getTotalElements());
-        model.addAttribute("users", users);
+        model.addAttribute("categories", categories);
 
         // 5. Giữ lại giá trị Filter để hiển thị lại
-        model.addAttribute("userId", userId);
+        model.addAttribute("categoryId", categoryId);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("keyword", keyword);

@@ -5,7 +5,7 @@
 <div th:fragment="content">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="text-primary">
-            <i class="fas fa-file-invoice-dollar"></i> Chi tiết Mẫu Ngân sách #<span th:text="${template.id}"></span>
+            <i class="fas fa-file-invoice-dollar"></i> Chi tiết Mẫu Ngân sách: <span th:text="${template.name}"></span>
         </h3>
         <div>
             <a th:href="@{'/admin/budget-templates/edit/' + ${template.id}}" class="btn btn-warning">
@@ -26,12 +26,12 @@
                 <div class="card-body">
                     <table class="table table-borderless mb-0">
                         <tr>
-                            <th class="text-muted" style="width: 40%;">Tên mẫu:</th>
-                            <td class="fw-bold" th:text="${template.name}"></td>
+                            <th class="text-muted" style="width: 40%;">ID:</th>
+                            <td class="fw-bold">#<span th:text="${template.id}"></span></td>
                         </tr>
                         <tr>
-                            <th class="text-muted">Tháng:</th>
-                            <td><span class="badge bg-primary fs-6">Tháng [[${template.month}]]</span></td>
+                            <th class="text-muted">Tên mẫu:</th>
+                            <td class="fw-bold" th:text="${template.name}"></td>
                         </tr>
                         <tr>
                             <th class="text-muted">Mô tả:</th>
@@ -60,13 +60,20 @@
                     <p class="text-muted mb-3">Danh mục ngân sách</p>
                     
                     <h3 class="text-success mb-0">
-                        <span th:if="${template.items != null}"
-                              th:text="${#numbers.formatDecimal(template.items.![defaultAmount].stream().reduce(T(java.math.BigDecimal).ZERO, (a, b) -> a.add(b)), 0, 'COMMA', 0, 'POINT')}">0</span>
-                        <span th:unless="${template.items != null}">0</span>
+                        <span th:text="${#numbers.formatDecimal(totalDefaultAmount, 0, 'COMMA', 0, 'POINT')}">0</span>
                         <small class="fs-6">VND</small>
                     </h3>
-                    <p class="text-muted">Tổng ngân sách mặc định</p>
+                    <p class="text-muted mb-0">Tổng ngân sách mặc định</p>
                 </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <h6 class="alert-heading"><i class="fas fa-lightbulb"></i> Cách hoạt động</h6>
+                <small>
+                    Mẫu này giống như một <strong>thực đơn</strong> - Admin tạo sẵn các gói ngân sách. 
+                    Khi User chọn áp dụng mẫu này, hệ thống sẽ tự động tạo các bản ghi <strong>Budget</strong> 
+                    thực tế cho tháng cụ thể của họ. User có thể điều chỉnh số tiền sau khi áp dụng.
+                </small>
             </div>
         </div>
     </div>

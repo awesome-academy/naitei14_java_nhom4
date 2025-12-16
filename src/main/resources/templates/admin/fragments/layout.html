@@ -43,7 +43,8 @@
             </li>
 
             <li>
-                <a href="#" class="nav-link">
+                <a th:href="@{/admin/expenses}" class="nav-link"
+                   th:classappend="${@urlUtils.isActive('/admin/expenses')} ? 'active'">
                     <i class="fas fa-file-invoice-dollar"></i> Expenses (Global)
                 </a>
             </li>

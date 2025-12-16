@@ -13,9 +13,17 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.math.BigDecimal;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
+
+    // ADMIN FILTER BY CATEGORY
+    Page<Expense> findByUserIdAndCategoryIdAndExpenseDateBetweenAndDescriptionContaining(Integer userId, Integer categoryId, LocalDate fromDate, LocalDate toDate, String description, Pageable pageable);
+    Page<Expense> findByUserIdAndCategoryIdAndExpenseDateBetween(Integer userId, Integer categoryId, LocalDate fromDate, LocalDate toDate, Pageable pageable);
+    Page<Expense> findByUserIdAndCategoryId(Integer userId, Integer categoryId, Pageable pageable);
+    Page<Expense> findByCategoryIdAndExpenseDateBetween(Integer categoryId, LocalDate fromDate, LocalDate toDate, Pageable pageable);
+    Page<Expense> findByCategoryId(Integer categoryId, Pageable pageable);
 
     Page<Expense> findByUser(User user, Pageable pageable);
 
@@ -38,4 +46,25 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     List<Expense> findByUser(User user);
 
     long countByUser(User user);
+
+    // ADMIN QUERIES
+    Page<Expense> findByUserIdAndExpenseDateBetweenAndDescriptionContaining(Integer userId, LocalDate fromDate, LocalDate toDate, String description, Pageable pageable);
+
+    Page<Expense> findByUserIdAndExpenseDateBetween(Integer userId, LocalDate fromDate, LocalDate toDate, Pageable pageable);
+
+    Page<Expense> findByUserId(Integer userId, Pageable pageable);
+
+    Page<Expense> findByExpenseDateBetween(LocalDate fromDate, LocalDate toDate, Pageable pageable);
+
+    Page<Expense> findByDescriptionContaining(String description, Pageable pageable);
+
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE " +
+            "e.user.id = :userId AND " +
+            "e.category.id = :categoryId AND " +
+            "e.expenseDate BETWEEN :startDate AND :endDate")
+    Optional<BigDecimal> sumExpensesByBudgetPeriod(
+            @Param("userId") Integer userId,
+            @Param("categoryId") Integer categoryId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }

@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments/layout :: layout(~{::content})}">
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-primary"><i class="fas fa-edit"></i> <span th:text="${expense.id != null ? 'Chỉnh sửa' : 'Thêm mới'}"></span> Chi tiêu #<span th:if="${expense.id != null}" th:text="${expense.id}"></span></h3>
+    </div>
+
+    <div class="card shadow" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-body p-4">
+            <form th:action="@{/admin/expenses/save}" th:object="${expense}" method="post">
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-secondary">Người dùng (Read-only)</label>
+                        <input type="text" class="form-control bg-light" th:value="${expense.user != null ? expense.user.email : ''}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Mô tả <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{description}" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Số tiền <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" th:field="*{amount}" class="form-control" required>
+                            <select th:field="*{currency}" class="form-select" style="max-width: 120px;">
+                                <option value="VND">VND</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="JPY">JPY</option>
+                                <option value="KRW">KRW</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Ngày chi <span class="text-danger">*</span></label>
+                        <input type="date"
+                               class="form-control"
+                               id="expenseDate"
+                               name="expenseDate"
+                               th:field="*{expenseDate}"
+                               required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Danh mục</label>
+                    <select th:field="*{category}" class="form-select">
+                        <option value="">-- Chọn danh mục --</option>
+                        <option th:each="cat : ${categories}"
+                                th:value="${cat.id}"
+                                th:text="${cat.name}"
+                                th:selected="${expense.category != null and cat.id == expense.category.id}"></option>
+                    </select>
+                </div>
+
+                <hr class="my-4 text-muted">
+
+                <h5 class="text-info mb-3"><i class="fas fa-sync"></i> Cấu hình Lặp lại (Recurring)</h5>
+
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox"
+                           id="isRecurring" name="isRecurring"
+                           th:checked="${expense.isRecurring}"
+                           onchange="toggleRecurring()">
+                    <label class="form-check-label fw-bold" for="isRecurring">Bật chế độ Chi tiêu Định kỳ</label>
+                </div>
+
+                <div id="recurringOptions" class="row mb-3" style="display: none;">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Chu kỳ lặp</label>
+                        <select th:field="*{recurringInterval}" class="form-select">
+                            <option value="">-- Chọn chu kỳ --</option>
+                            <option value="DAILY">Hàng ngày (Daily)</option>
+                            <option value="WEEKLY">Hàng tuần (Weekly)</option>
+                            <option value="MONTHLY">Hàng tháng (Monthly)</option>
+                            <option value="YEARLY">Hàng năm (Yearly)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Ngày kết thúc (Tùy chọn)</label>
+                        <input type="date"
+                               class="form-control"
+                               id="recurringEndDate"
+                               name="recurringEndDate"
+                               th:field="*{recurringEndDate}">
+                        <small class="text-muted">Để trống nếu lặp vô hạn</small>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted">
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Ghi chú</label>
+                    <textarea th:field="*{note}" class="form-control" rows="3" placeholder="Nhập ghi chú chi tiết..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a th:href="@{/admin/expenses}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Hủy bỏ
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleRecurring() {
+            const checkBox = document.getElementById('isRecurring');
+            const optionsDiv = document.getElementById('recurringOptions');
+            if (checkBox.checked) {
+                optionsDiv.style.display = 'flex';
+            } else {
+                optionsDiv.style.display = 'none';
+            }
+        }
+
+        // Chạy 1 lần khi load trang để set đúng trạng thái ban đầu
+        document.addEventListener("DOMContentLoaded", function() {
+            toggleRecurring();
+        });
+    </script>
+</div>
+</body>
+</html>

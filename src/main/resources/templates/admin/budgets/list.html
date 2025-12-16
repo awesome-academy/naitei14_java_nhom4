@@ -7,7 +7,11 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-primary"><i class="fas fa-wallet"></i> Quản lý Ngân sách</h2>
         <div class="btn-group" role="group">
-            <a th:href="@{/admin/csv/budgets/export}" class="btn btn-success">
+            <a th:href="@{/admin/csv/budgets/export(
+            keyword=${param.keyword},
+            startDate=${param.startDate},
+            endDate=${param.endDate}
+       )}" class="btn btn-success">
                 <i class="fas fa-file-export"></i> Export CSV
             </a>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">
@@ -44,13 +48,13 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label fw-bold">Người dùng</label>
-                    <select name="userId" class="form-select" onchange="submitForm()">
-                        <option value="">-- Tất cả người dùng --</option>
-                        <option th:each="u : ${users}"
-                                th:value="${u.id}"
-                                th:text="${u.name + ' (' + u.email + ')'}"
-                                th:selected="${u.id == userId}"></option>
+                    <label class="form-label fw-bold">Danh mục</label>
+                    <select name="categoryId" class="form-select" onchange="submitForm()">
+                        <option value="">-- Tất cả danh mục --</option>
+                        <option th:each="cat : ${categories}"
+                                th:value="${cat.id}"
+                                th:text="${cat.name}"
+                                th:selected="${cat.id == categoryId}"></option>
                     </select>
                 </div>
 
@@ -81,7 +85,7 @@
                     <thead class="table-dark">
                     <tr>
                         <th>
-                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='id', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='id', sortDir=${reverseSortDir}, keyword=${keyword}, categoryId=${categoryId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
                                 ID <i th:if="${sortField == 'id'}"
                                       th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
@@ -91,7 +95,7 @@
                         <th>Người dùng</th>
 
                         <th>
-                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='category.name', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                                     <a th:href="@{/admin/budgets(page=${currentPage}, sortField='category.name', sortDir=${reverseSortDir}, keyword=${keyword}, categoryId=${categoryId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
                                 Danh mục <i th:if="${sortField == 'category.name'}"
                                              th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
@@ -99,7 +103,7 @@
                         </th>
 
                         <th>
-                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='amount', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                                     <a th:href="@{/admin/budgets(page=${currentPage}, sortField='amount', sortDir=${reverseSortDir}, keyword=${keyword}, categoryId=${categoryId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
                                 Số tiền <i th:if="${sortField == 'amount'}"
                                            th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
@@ -107,7 +111,7 @@
                         </th>
 
                         <th>
-                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='startDate', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                                     <a th:href="@{/admin/budgets(page=${currentPage}, sortField='startDate', sortDir=${reverseSortDir}, keyword=${keyword}, categoryId=${categoryId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
                                 Ngày bắt đầu <i th:if="${sortField == 'startDate'}"
                                         th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
@@ -115,7 +119,7 @@
                         </th>
 
                         <th>
-                            <a th:href="@{/admin/budgets(page=${currentPage}, sortField='endDate', sortDir=${reverseSortDir}, keyword=${keyword}, userId=${userId}, startDate=${startDate}, endDate=${endDate})}"
+                                     <a th:href="@{/admin/budgets(page=${currentPage}, sortField='endDate', sortDir=${reverseSortDir}, keyword=${keyword}, categoryId=${categoryId}, startDate=${startDate}, endDate=${endDate})}"
                                class="text-white text-decoration-none">
                                 Ngày kết thúc <i th:if="${sortField == 'endDate'}"
                                         th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
@@ -276,7 +280,7 @@
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/budgets(page=${currentPage - 1}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}">
+                        <a class="page-link" th:href="@{/admin/budgets(page=${currentPage - 1}, categoryId=${categoryId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}">
                             Trước
                         </a>
                     </li>
@@ -284,12 +288,12 @@
                     <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
                         th:classappend="${currentPage == i} ? 'active'">
                         <a class="page-link"
-                           th:href="@{/admin/budgets(page=${i}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}"
+                                    th:href="@{/admin/budgets(page=${i}, categoryId=${categoryId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}"
                            th:text="${i}"></a>
                     </li>
 
                     <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/admin/budgets(page=${currentPage + 1}, userId=${userId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}">
+                        <a class="page-link" th:href="@{/admin/budgets(page=${currentPage + 1}, categoryId=${categoryId}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, sortField=${sortField}, sortDir=${sortDir})}">
                             Sau
                         </a>
                     </li>

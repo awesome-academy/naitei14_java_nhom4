@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 public interface BudgetTemplateService {
     
     // Lấy danh sách template có phân trang và filter
-    Page<BudgetTemplate> listTemplates(String keyword, Integer month, Pageable pageable);
+    Page<BudgetTemplate> listTemplates(String keyword, Pageable pageable);
     
     // Lấy chi tiết template theo ID
     BudgetTemplate getTemplate(Integer id);

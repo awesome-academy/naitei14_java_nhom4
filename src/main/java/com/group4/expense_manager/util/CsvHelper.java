@@ -5,9 +5,11 @@ import com.group4.expense_manager.entity.Income;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.Budget;
+import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.dto.response.UserCsvResponse;
 import com.group4.expense_manager.dto.request.IncomeCsvRequest;
 import com.group4.expense_manager.dto.request.BudgetCsvRequest;
+import com.group4.expense_manager.dto.request.ExpenseCsvRequest;
 import org.apache.commons.csv.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.group4.expense_manager.entity.CategoryType;
@@ -257,4 +259,65 @@ public class CsvHelper {
             throw new RuntimeException("Lỗi khi đọc file CSV Category: " + e.getMessage());
         }
     }
+
+    public static ByteArrayInputStream expensesToCsv(List<Expense> expenses) {
+        final CSVFormat format = CSVFormat.DEFAULT.builder()
+                .setHeader("Name", "Description", "Amount", "Currency", "Date", "Category Name", "Note", "User Email", "Is Recurring")
+                .build();
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new PrintWriter(out), format)) {
+
+            for (Expense expense : expenses) {
+                csvPrinter.printRecord(
+                        expense.getName(),
+                        expense.getDescription(),
+                        expense.getAmount(),
+                        expense.getCurrency(),
+                        expense.getExpenseDate(),
+                        expense.getCategory() != null ? expense.getCategory().getName() : "N/A",
+                        expense.getNote(),
+                        expense.getUser().getEmail(),
+                        expense.getIsRecurring()
+                );
+            }
+            csvPrinter.flush();
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Error writing Expense CSV data: " + e.getMessage());
+        }
+    }
+
+    public static List<ExpenseCsvRequest> csvToExpenseDtos(InputStream is) {
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+             CSVParser csvParser = new CSVParser(fileReader,
+                     CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).setTrim(true).build())) {
+
+            List<ExpenseCsvRequest> dtos = new ArrayList<>();
+            Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+
+            for (CSVRecord csvRecord : csvRecords) {
+                ExpenseCsvRequest dto = new ExpenseCsvRequest();
+
+                dto.setName(csvRecord.get("Name"));
+                dto.setDescription(csvRecord.get("Description"));
+                dto.setAmount(csvRecord.get("Amount"));
+                dto.setCurrency(csvRecord.get("Currency"));
+                dto.setExpenseDate(csvRecord.get("Date"));
+                dto.setCategoryName(csvRecord.get("Category Name"));
+                dto.setNote(csvRecord.get("Note"));
+                dto.setUserEmail(csvRecord.get("User Email"));
+
+                if (csvRecord.isMapped("Is Recurring")) {
+                    dto.setIsRecurring(csvRecord.get("Is Recurring"));
+                }
+
+                dtos.add(dto);
+            }
+            return dtos;
+        } catch (IOException e) {
+            throw new RuntimeException("Fail to parse CSV file: " + e.getMessage());
+        }
+    }
+
 }

@@ -3,6 +3,7 @@ package com.group4.expense_manager.service;
 import com.group4.expense_manager.dto.response.UserCsvResponse;
 import com.group4.expense_manager.dto.request.IncomeCsvRequest;
 import com.group4.expense_manager.dto.request.BudgetCsvRequest;
+import com.group4.expense_manager.dto.request.ExpenseCsvRequest;
 import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.CategoryType;
 import com.group4.expense_manager.entity.Expense;
@@ -33,6 +34,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.format.DateTimeParseException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 @Service
 public class CsvService {
     @Autowired private UserRepository userRepository;
@@ -41,10 +46,25 @@ public class CsvService {
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private BudgetRepository budgetRepository;
+    @Autowired private IncomeService incomeService;
+    @Autowired private BudgetService budgetService;
+    @Autowired private UserService userService;
+    @Autowired private ExpenseService expenseService;
 
-    public ByteArrayInputStream loadUserCsv() {
-        List<User> users = userRepository.findAll();
-                List<UserCsvResponse> userCsvResponses = new ArrayList<>();
+    
+
+    public ByteArrayInputStream loadUserCsv(
+            String keyword,
+            Boolean status,
+            Sort sort
+    ) {
+        Page<User> pageUser = userService.getUsers(
+                keyword,
+                status,
+                PageRequest.of(0, Integer.MAX_VALUE, sort)
+        );
+        List<User> users = pageUser.getContent();
+        List<UserCsvResponse> userCsvResponses = new ArrayList<>();
 
         for (User user : users) {
             Double totalExp = expenseRepository.sumAmountByUserId(user.getId());
@@ -173,8 +193,18 @@ public class CsvService {
         }
     }
 
-    public ByteArrayInputStream loadBudgetCsv() {
-        List<Budget> budgets = budgetRepository.findAll();
+    public ByteArrayInputStream loadBudgetCsv(Integer userId,
+                                              LocalDate startDate,
+                                              LocalDate endDate,
+                                              String keyword) {
+        Page<Budget> budgetPage = budgetService.getAllBudgetsForAdmin(
+                userId,
+                startDate,
+                endDate,
+                keyword,
+                Pageable.unpaged() // <-- Lấy TOÀN BỘ dữ liệu phù hợp với lọc
+        );
+        List<Budget> budgets = budgetPage.getContent();
         return CsvHelper.budgetsToCsv(budgets);
     }
 
@@ -224,9 +254,87 @@ public class CsvService {
         }
     }
 
-    public ByteArrayInputStream loadIncomeCsv() {
-        List<Income> incomes = incomeRepository.findAll();
-        return CsvHelper.incomesToCsv(incomes);
+    public ByteArrayInputStream loadIncomeCsv(Integer userId, 
+            String keyword, 
+            LocalDate startDate, 
+            LocalDate endDate) {
+        // List<Income> incomes = incomeRepository.findAll();
+        Page<Income> incomePage = incomeService.getAllIncomesForAdmin(
+            userId, 
+            startDate, 
+            endDate, 
+            keyword,
+            Pageable.unpaged() // <-- Yếu tố quyết định để lấy TOÀN BỘ
+        );
+        return CsvHelper.incomesToCsv(incomePage.getContent());
     }
+
+    public ByteArrayInputStream exportExpenseCsv(
+            Integer userId,
+            Integer categoryId,
+            LocalDate startDate,
+            LocalDate endDate,
+            String keyword
+    ) {
+        // 1. Gọi hàm search của ExpenseService với Pageable.unpaged() để lấy ALL
+        // Giả định bạn đã có hàm getAllExpensesForAdmin trong ExpenseService
+        Page<Expense> page = expenseService.getAllExpensesForAdmin(
+                userId, categoryId, startDate, endDate, keyword,
+                Pageable.unpaged()
+        );
+
+        List<Expense> expenses = page.getContent();
+        return CsvHelper.expensesToCsv(expenses);
+    }
+
+    // --- IMPORT EXPENSES ---
+    public void saveExpensesFromCsv(MultipartFile file) {
+        try {
+            List<ExpenseCsvRequest> dtos = CsvHelper.csvToExpenseDtos(file.getInputStream());
+            List<Expense> expensesToSave = new ArrayList<>();
+
+            for (ExpenseCsvRequest dto : dtos) {
+                Expense expense = new Expense();
+
+                // 1. Tìm User (BẮT BUỘC)
+                User user = userRepository.findByEmail(dto.getUserEmail())
+                        .orElseThrow(() -> new RuntimeException("User not found: " + dto.getUserEmail()));
+                expense.setUser(user);
+
+                // 2. Tìm Category (Loại EXPENSE)
+                String categoryName = dto.getCategoryName();
+                if (categoryName != null && !categoryName.isEmpty() && !categoryName.equals("N/A")) {
+                    Category category = categoryRepository.findByNameAndUserIdAndType(
+                            categoryName,
+                            user.getId(),
+                            CategoryType.expense // <-- Quan trọng: Chỉ lấy category chi tiêu
+                    ).orElse(null);
+                    expense.setCategory(category);
+                }
+
+                expense.setName(dto.getName());
+                expense.setDescription(dto.getDescription());
+                expense.setAmount(new BigDecimal(dto.getAmount()));
+                expense.setExpenseDate(LocalDate.parse(dto.getExpenseDate()));
+                expense.setNote(dto.getNote());
+
+                String currency = (dto.getCurrency() != null && !dto.getCurrency().isEmpty()) ? dto.getCurrency() : "VND";
+                expense.setCurrency(currency);
+
+                // 4. Recurring (Mặc định false nếu null)
+                boolean isRecurring = dto.getIsRecurring() != null && Boolean.parseBoolean(dto.getIsRecurring());
+                expense.setIsRecurring(isRecurring);
+
+                expensesToSave.add(expense);
+            }
+
+            expenseRepository.saveAll(expensesToSave);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing Expense CSV: " + e.getMessage());
+        }
+    }
+
+
 
 }

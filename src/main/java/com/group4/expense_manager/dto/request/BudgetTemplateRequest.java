@@ -1,7 +1,5 @@
 package com.group4.expense_manager.dto.request;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -17,10 +15,8 @@ public class BudgetTemplateRequest {
     @NotBlank(message = "Tên mẫu ngân sách là bắt buộc")
     private String name;
     
-    @NotNull(message = "Tháng là bắt buộc")
-    @Min(value = 1, message = "Tháng phải từ 1 đến 12")
-    @Max(value = 12, message = "Tháng phải từ 1 đến 12")
-    private Integer month;
+    // Tháng không còn được nhập ở UI; giữ giá trị mặc định = 1 để phù hợp entity
+    private Integer month = 1;
     
     private String description;
     

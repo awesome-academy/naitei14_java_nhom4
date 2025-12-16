@@ -18,15 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
-	private final CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-	private final CloudinaryService cloudinaryService;
+    private final CloudinaryService cloudinaryService;
 
-	private final CsvService csvService;
+    private final CsvService csvService;
 
-	@Autowired
-	public CategoryServiceImpl(CategoryRepository categoryRepository, CloudinaryService cloudinaryService, CsvService csvService) {
-		this.categoryRepository = categoryRepository;
+    @Autowired
+    public CategoryServiceImpl(CategoryRepository categoryRepository, CloudinaryService cloudinaryService, CsvService csvService) {
+        this.categoryRepository = categoryRepository;
         this.cloudinaryService = cloudinaryService;
         this.csvService = csvService;
     }
