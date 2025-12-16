@@ -2,9 +2,11 @@ package com.group4.expense_manager.service.impl;
 
 import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.Expense;
+import com.group4.expense_manager.entity.Budget;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.repository.CategoryRepository;
 import com.group4.expense_manager.repository.ExpenseRepository;
+import com.group4.expense_manager.repository.BudgetRepository;
 import com.group4.expense_manager.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,17 +16,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final CategoryRepository categoryRepository;
+    private final BudgetRepository budgetRepository;
 
     @Autowired
-    public ExpenseServiceImpl(ExpenseRepository expenseRepository, CategoryRepository categoryRepository) {
+    public ExpenseServiceImpl(ExpenseRepository expenseRepository, CategoryRepository categoryRepository, BudgetRepository budgetRepository) {
         this.expenseRepository = expenseRepository;
         this.categoryRepository = categoryRepository;
+        this.budgetRepository = budgetRepository;
     }
 
     // ===============================
@@ -81,6 +86,44 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    public void checkBudgetAlert(Expense newExpense) {
+        // Chỉ cảnh báo nếu giao dịch có Category
+        if (newExpense.getCategory() == null) return;
+
+        // 1. Tìm Ngân sách áp dụng
+        Budget budget = budgetRepository.findActiveBudgetForExpense(
+                newExpense.getUser().getId(),
+                newExpense.getCategory().getId(),
+                newExpense.getExpenseDate()
+        ).orElse(null);
+
+        if (budget == null) return; // Không có ngân sách nào áp dụng
+
+        // 2. Tính tổng chi tiêu (cộng cả giao dịch mới này)
+        BigDecimal totalSpent = expenseRepository.sumExpensesByBudgetPeriod(
+                budget.getUser().getId(),
+                budget.getCategory().getId(),
+                budget.getStartDate(),
+                budget.getEndDate()
+        ).orElse(BigDecimal.ZERO);
+
+        // 3. Kiểm tra và Cảnh báo
+        if (totalSpent.compareTo(budget.getAmount()) > 0) {
+            // Log hoặc gửi thông báo (Notification)
+            String message = String.format(
+                    "CẢNH BÁO: Chi tiêu cho danh mục '%s' đã vượt Ngân sách! Đã chi %.2f / Ngân sách %.2f.",
+                    budget.getCategory().getName(),
+                    totalSpent,
+                    budget.getAmount()
+            );
+            System.err.println(message); // Trong thực tế, bạn sẽ lưu vào bảng thông báo
+
+            // Tùy chọn: trả về một DTO cảnh báo cho API biết
+            // throw new BudgetExceededException(message); // Nếu muốn ngăn cản giao dịch
+        }
+    }
+
+    @Override
     @Transactional
     public Expense createExpense(User user, Expense expense) {
         // Map user và validate category nếu có
@@ -93,6 +136,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (expense.getCurrency() == null || expense.getCurrency().isBlank()) {
             expense.setCurrency(user.getDefaultCurrency());
         }
+        checkBudgetAlert(expense);
         return expenseRepository.save(expense);
     }
 
