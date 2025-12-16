@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
 
 public interface BudgetService {
     // ========================================================================
@@ -19,10 +20,13 @@ public interface BudgetService {
     Budget updateBudget(Integer budgetId, User user, CreateBudgetRequest request);
     void deleteBudget(Integer budgetId, User user);
     
+    // Apply an admin template into user's budgets for a specific month
+    List<Budget> applyTemplate(User user, Integer templateId, YearMonth month);
+    
     // ========================================================================
     // ADMIN METHODS
     // ========================================================================
-    Page<Budget> getAllBudgetsForAdmin(Integer userId, LocalDate startDate, LocalDate endDate, String keyword, org.springframework.data.domain.Pageable pageable);
+    Page<Budget> getAllBudgetsForAdmin(Integer categoryId, LocalDate startDate, LocalDate endDate, String keyword, org.springframework.data.domain.Pageable pageable);
     void adminUpdateBudget(Budget budget);
     void deleteBudgetById(Integer id);
 }
