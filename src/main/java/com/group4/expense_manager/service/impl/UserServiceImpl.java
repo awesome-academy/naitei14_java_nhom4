@@ -1,5 +1,6 @@
 package com.group4.expense_manager.service.impl;
 
+import com.group4.expense_manager.annotation.LogActivity;
 import com.group4.expense_manager.dto.request.UserRegistrationRequest;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.repository.UserRepository;
@@ -37,6 +38,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @LogActivity(
+        action = "CREATE",
+        targetEntity = "USER",
+        description = "Created new user"
+    )
     public User saveNewUser(UserRegistrationRequest userRequest) {
         User newUser = new User();
 
@@ -65,6 +71,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "USER",
+        description = "updated user information"
+    )
     public void saveAdminUser(AdminUserFormRequest dto) {
         User user;
         if (dto.getId() != null) {
@@ -84,6 +95,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @LogActivity(
+        action = "DELETE",
+        targetEntity = "USER",
+        description = "Deleted user account"
+    )
     public void deleteUser(Integer id) {
         userRepository.deleteById(id);
     }

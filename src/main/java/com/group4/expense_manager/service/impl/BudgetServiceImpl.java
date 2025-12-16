@@ -1,5 +1,6 @@
 package com.group4.expense_manager.service.impl;
 
+import com.group4.expense_manager.annotation.LogActivity;
 import com.group4.expense_manager.dto.request.CreateBudgetRequest;
 import com.group4.expense_manager.entity.Budget;
 import com.group4.expense_manager.entity.BudgetTemplate;
@@ -90,6 +91,11 @@ public class BudgetServiceImpl implements BudgetService {
     
     @Override
     @Transactional
+    @LogActivity(
+        action = "CREATE",
+        targetEntity = "BUDGET",
+        description = "Created new budget "
+    )
     public Budget createBudget(User user, CreateBudgetRequest request) {
         Budget budget = new Budget();
         mapRequestToEntity(request, budget, user);
@@ -98,6 +104,11 @@ public class BudgetServiceImpl implements BudgetService {
     
     @Override
     @Transactional
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "BUDGET",
+        description = "Updated budget"
+    )
     public Budget updateBudget(Integer budgetId, User user, CreateBudgetRequest request) {
         Budget budget = getBudget(budgetId, user);
         mapRequestToEntity(request, budget, user);
@@ -106,6 +117,11 @@ public class BudgetServiceImpl implements BudgetService {
     
     @Override
     @Transactional
+    @LogActivity(
+        action = "DELETE",
+        targetEntity = "BUDGET",
+        description = "Deleted budget"
+    )
     public void deleteBudget(Integer budgetId, User user) {
         Budget budget = getBudget(budgetId, user);
         budgetRepository.delete(budget);
@@ -192,6 +208,11 @@ public class BudgetServiceImpl implements BudgetService {
     
     @Override
     @Transactional
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "BUDGET",
+        description = " updated budget "
+    )
     public void adminUpdateBudget(Budget budget) {
         Budget existingBudget = budgetRepository.findById(budget.getId())
                 .orElseThrow(() -> new RuntimeException("Budget not found"));
@@ -213,6 +234,11 @@ public class BudgetServiceImpl implements BudgetService {
     
     @Override
     @Transactional
+    @LogActivity(
+        action = "DELETE",
+        targetEntity = "BUDGET",
+        description = "deleted budget"
+    )
     public void deleteBudgetById(Integer id) {
         Budget budget = budgetRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Budget not found"));
