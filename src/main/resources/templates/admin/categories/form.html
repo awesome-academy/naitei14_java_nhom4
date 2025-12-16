@@ -17,7 +17,9 @@
         <div class="card shadow" style="max-width: 800px; margin: 0 auto;">
             <div class="card-body p-4">
                 <form th:action="@{/admin/categories/save}" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="id" th:value="${category.id}" />
+                    
+                    <!-- Hidden field for ID when editing -->
+                    <input type="hidden" name="id" th:value="${category.id}">
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tên danh mục <span class="text-danger">*</span></label>
@@ -30,8 +32,8 @@
                         <select name="type" class="form-select" required>
                             <option value="">-- Chọn loại --</option>
                             <option th:each="t : ${categoryTypes}" th:value="${t}"
-                                th:text="${t == T(com.group4.expense_manager.entity.CategoryType).expense ? 'Chi tiêu' : 'Thu nhập'}"
-                                th:selected="${category.type == t}"></option>
+                                th:text="${t?.name() == 'expense' ? 'Chi tiêu' : 'Thu nhập'}"
+                                th:selected="${category.type?.name() == t?.name()}"></option>
                         </select>
                         <small class="text-muted">
                             <i class="fas fa-info-circle"></i> Chi tiêu: cho các khoản chi phí. Thu nhập: cho các nguồn

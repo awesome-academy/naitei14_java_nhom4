@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments/layout :: layout(~{::content})}">
+
+<body>
+    <div th:fragment="content">
+
+        <h2 class="mb-4">Activity Logs Management</h2>
+
+        <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}">Success message.</div>
+        <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}">Error message.</div>
+
+        <!-- Filter Section -->
+        <form th:action="@{/admin/activity-logs}" method="get" class="mb-4">
+            <input type="hidden" name="sortField" th:value="${sortField}">
+            <input type="hidden" name="sortDir" th:value="${sortDir}">
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">User ID</label>
+                    <input type="number" name="userId" class="form-control" placeholder="Filter by User ID"
+                        th:value="${userId}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Entity Type</label>
+                    <select name="entityType" class="form-select">
+                        <option value="">-- All Entities --</option>
+                        <option value="USER" th:selected="${entityType == 'USER'}">USER</option>
+                        <option value="CATEGORY" th:selected="${entityType == 'CATEGORY'}">CATEGORY</option>
+                        <option value="BUDGET" th:selected="${entityType == 'BUDGET'}">BUDGET</option>
+                        <option value="EXPENSE" th:selected="${entityType == 'EXPENSE'}">EXPENSE</option>
+                        <option value="INCOME" th:selected="${entityType == 'INCOME'}">INCOME</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Action</label>
+                    <select name="action" class="form-select">
+                        <option value="">-- All Actions --</option>
+                        <option value="CREATE" th:selected="${action == 'CREATE'}">CREATE</option>
+                        <option value="UPDATE" th:selected="${action == 'UPDATE'}">UPDATE</option>
+                        <option value="DELETE" th:selected="${action == 'DELETE'}">DELETE</option>
+                        <option value="LOGIN" th:selected="${action == 'LOGIN'}">LOGIN</option>
+                        <option value="LOGOUT" th:selected="${action == 'LOGOUT'}">LOGOUT</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">User Role</label>
+                    <select name="role" class="form-select">
+                        <option value="">-- All Roles --</option>
+                        <option value="USER" th:selected="${role == 'USER'}">USER</option>
+                        <option value="ADMIN" th:selected="${role == 'ADMIN'}">ADMIN</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="endDate" class="form-control" th:value="${endDate}">
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                    <a th:href="@{/admin/activity-logs}" class="btn btn-secondary flex-fill">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Info Card -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-ul text-primary"></i>
+                            Total Logs: <strong th:text="${totalItems}">0</strong>
+                        </h5>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            Activity logs track all important actions performed by users in the system
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Logs Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 5%;">
+                            <a th:href="@{/admin/activity-logs(page=${currentPage}, sortField='id', sortDir=${reverseSortDir}, userId=${userId}, entityType=${entityType}, action=${action}, role=${role}, startDate=${startDate}, endDate=${endDate})}"
+                                class="text-white text-decoration-none">
+                                ID <i th:if="${sortField == 'id'}"
+                                    th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th style="width: 8%;">
+                            <a th:href="@{/admin/activity-logs(page=${currentPage}, sortField='userId', sortDir=${reverseSortDir}, userId=${userId}, entityType=${entityType}, action=${action}, role=${role}, startDate=${startDate}, endDate=${endDate})}"
+                                class="text-white text-decoration-none">
+                                User ID <i th:if="${sortField == 'userId'}"
+                                    th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th style="width: 10%;">
+                            <a th:href="@{/admin/activity-logs(page=${currentPage}, sortField='action', sortDir=${reverseSortDir}, userId=${userId}, entityType=${entityType}, action=${action}, role=${role}, startDate=${startDate}, endDate=${endDate})}"
+                                class="text-white text-decoration-none">
+                                Action <i th:if="${sortField == 'action'}"
+                                    th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th style="width: 12%;">
+                            <a th:href="@{/admin/activity-logs(page=${currentPage}, sortField='targetEntity', sortDir=${reverseSortDir}, userId=${userId}, entityType=${entityType}, action=${action}, role=${role}, startDate=${startDate}, endDate=${endDate})}"
+                                class="text-white text-decoration-none">
+                                Entity Type <i th:if="${sortField == 'targetEntity'}"
+                                    th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th style="width: 8%;">Target ID</th>
+                        <th style="width: 32%;">Description</th>
+                        <th style="width: 15%;">
+                            <a th:href="@{/admin/activity-logs(page=${currentPage}, sortField='createdAt', sortDir=${reverseSortDir}, userId=${userId}, entityType=${entityType}, action=${action}, role=${role}, startDate=${startDate}, endDate=${endDate})}"
+                                class="text-white text-decoration-none">
+                                Created At <i th:if="${sortField == 'createdAt'}"
+                                    th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                            </a>
+                        </th>
+                        <th style="width: 10%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(activityLogs)}">
+                        <td colspan="8" class="text-center text-muted">
+                            <i class="fas fa-inbox fa-2x mb-2"></i>
+                            <p>No activity logs found</p>
+                        </td>
+                    </tr>
+                    <tr th:each="log : ${activityLogs}">
+                        <td th:text="${log.id}">1</td>
+                        <td th:text="${log.userId}">1</td>
+                        <td>
+                            <span th:text="${log.action}" th:class="${log.action == 'CREATE' ? 'badge bg-success' : 
+                                     log.action == 'UPDATE' ? 'badge bg-primary' : 
+                                     log.action == 'DELETE' ? 'badge bg-danger' : 
+                                     log.action == 'LOGIN' ? 'badge bg-info' : 
+                                     log.action == 'LOGOUT' ? 'badge bg-secondary' : 
+                                     'badge bg-warning'}">ACTION</span>
+                        </td>
+                        <td th:text="${log.targetEntity}">USER</td>
+                        <td th:text="${log.targetId != null ? log.targetId : '-'}">-</td>
+                        <td>
+                            <span
+                                th:text="${#strings.length(log.description) > 100 ? #strings.substring(log.description, 0, 100) + '...' : log.description}"
+                                th:title="${log.description}">
+                                Description
+                            </span>
+                        </td>
+                        <td th:text="${#temporals.format(log.createdAt, 'dd-MM-yyyy HH:mm:ss')}">2024-01-01 10:00:00
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal"
+                                    th:data-bs-target="'#viewModal' + ${log.id}" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                    th:data-bs-target="'#deleteModal' + ${log.id}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+
+                            <!-- View Modal -->
+                            <div class="modal fade" th:id="'viewModal' + ${log.id}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-info text-white">
+                                            <h5 class="modal-title"><i class="fas fa-info-circle"></i> Activity Log
+                                                Details #[[${log.id}]]</h5>
+                                            <button type="button" class="btn-close btn-close-white"
+                                                data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body text-start p-4">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <h6 class="text-muted text-uppercase mb-1">Log ID</h6>
+                                                    <p class="fw-bold" th:text="${log.id}"></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="text-muted text-uppercase mb-1">User ID</h6>
+                                                    <p class="fw-bold" th:text="${log.userId}"></p>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <h6 class="text-muted text-uppercase mb-1">Action</h6>
+                                                    <span th:text="${log.action}" th:class="${log.action == 'CREATE' ? 'badge bg-success fs-6' : 
+                                                             log.action == 'UPDATE' ? 'badge bg-primary fs-6' : 
+                                                             log.action == 'DELETE' ? 'badge bg-danger fs-6' : 
+                                                             'badge bg-warning fs-6'}"></span>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="text-muted text-uppercase mb-1">Entity Type</h6>
+                                                    <p class="fw-bold" th:text="${log.targetEntity}"></p>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <h6 class="text-muted text-uppercase mb-1">Target ID</h6>
+                                                    <p class="fw-bold"
+                                                        th:text="${log.targetId != null ? log.targetId : 'N/A'}"></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="text-muted text-uppercase mb-1">Created At</h6>
+                                                    <p class="fw-bold"
+                                                        th:text="${#temporals.format(log.createdAt, 'dd-MM-yyyy HH:mm:ss')}">
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-3">
+                                                <div class="col-12">
+                                                    <h6 class="text-muted text-uppercase mb-1">Description</h6>
+                                                    <div class="p-3 bg-light border rounded">
+                                                        <p class="mb-0" th:text="${log.description}"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delete Modal -->
+                            <div class="modal fade" th:id="'deleteModal' + ${log.id}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Confirm
+                                                Delete</h5>
+                                            <button type="button" class="btn-close btn-close-white"
+                                                data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete this activity log?</p>
+                                            <p class="fw-bold">Log ID: [[${log.id}]]</p>
+                                            <p class="text-danger">This action cannot be undone!</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Cancel</button>
+                                            <form th:action="@{'/admin/activity-logs/delete/' + ${log.id}}"
+                                                method="post" style="display: inline;">
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav th:if="${totalPages > 1}" aria-label="Activity logs pagination">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 1 ? 'disabled' : ''}">
+                    <a class="page-link"
+                        th:href="@{/admin/activity-logs(page=${currentPage - 1}, sortField=${sortField}, sortDir=${sortDir}, userId=${userId}, entityType=${entityType}, action=${action}, role=${role}, startDate=${startDate}, endDate=${endDate})}">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                </li>
+
+                <!-- Page Numbers -->
+                <li class="page-item" th:each="pageNum : ${#numbers.sequence(1, totalPages)}"
+                    th:classappend="${pageNum == currentPage ? 'active' : ''}"
+                    th:if="${pageNum >= currentPage - 2 && pageNum <= currentPage + 2}">
+                    <a class="page-link"
+                        th:href="@{/admin/activity-logs(page=${pageNum}, sortField=${sortField}, sortDir=${sortDir}, userId=${userId}, entityType=${entityType}, action=${action}, role=${role}, startDate=${startDate}, endDate=${endDate})}"
+                        th:text="${pageNum}">1</a>
+                </li>
+
+                <li class="page-item" th:classappend="${currentPage == totalPages ? 'disabled' : ''}">
+                    <a class="page-link"
+                        th:href="@{/admin/activity-logs(page=${currentPage + 1}, sortField=${sortField}, sortDir=${sortDir}, userId=${userId}, entityType=${entityType}, action=${action}, role=${role}, startDate=${startDate}, endDate=${endDate})}">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Summary Info -->
+        <div class="text-center text-muted mt-3">
+            <small>
+                Showing page [[${currentPage}]] of [[${totalPages}]]
+                (Total: [[${totalItems}]] activity logs)
+            </small>
+        </div>
+
+    </div>
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 package com.group4.expense_manager.service.impl;
 
+import com.group4.expense_manager.annotation.LogActivity;
 import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.entity.User;
@@ -82,6 +83,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "CREATE",
+        targetEntity = "EXPENSE",
+        description = "Created new expense"
+    )
     public Expense createExpense(User user, Expense expense) {
         expense.setUser(user);
         return expenseRepository.save(expense);
@@ -89,6 +95,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "EXPENSE",
+        description = "Updated expense information"
+    )
     public Expense updateExpense(Integer expenseId, User user, Expense expense) {
         Expense existingExpense = getExpenseOfUser(expenseId, user);
 
@@ -104,6 +115,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "DELETE",
+        targetEntity = "EXPENSE",
+        description = "Deleted expense "
+    )
     public void deleteExpense(Integer expenseId, User user) {
         Expense expense = getExpenseOfUser(expenseId, user);
         expenseRepository.delete(expense);
@@ -146,6 +162,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "DELETE",
+        targetEntity = "EXPENSE",
+        description = "deleted expense "
+    )
     public void deleteExpenseById(Integer expenseId) {
         if (expenseId == null) {
             throw new IllegalArgumentException("Expense ID cannot be null");
@@ -155,6 +176,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "EXPENSE",
+        description = "updated expense "
+    )
     public Expense updateExpenseByAdmin(Integer expenseId, Expense expense) {
         if (expenseId == null || expense == null) {
             throw new IllegalArgumentException("Expense ID and Expense cannot be null");

@@ -1,5 +1,6 @@
 package com.group4.expense_manager.service.impl;
 
+import com.group4.expense_manager.annotation.LogActivity;
 import com.group4.expense_manager.dto.request.IncomeRequest;
 import com.group4.expense_manager.entity.*;
 import com.group4.expense_manager.exception.ResourceNotFoundException;
@@ -77,6 +78,11 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "CREATE",
+        targetEntity = "INCOME",
+        description = "Created new income "
+    )
     public Income createIncome(User user, IncomeRequest request) {
         Income income = new Income();
         // Map dữ liệu từ DTO sang Entity và xử lý các logic nghiệp vụ (Currency, Recurring...)
@@ -86,6 +92,11 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "INCOME",
+        description = "Updated income information"
+    )
     public Income updateIncome(Integer incomeId, User user, IncomeRequest request) {
         // Lấy income cũ lên và check quyền sở hữu trước khi update
         Income income = getIncomeOfUser(incomeId, user);
@@ -97,6 +108,11 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "DELETE",
+        targetEntity = "INCOME",
+        description = "Deleted income record"
+    )
     public void deleteIncome(Integer incomeId, User user) {
         // Lấy income và check quyền sở hữu
         Income income = getIncomeOfUser(incomeId, user);
@@ -116,6 +132,11 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "INCOME",
+        description = "updated income information"
+    )
     public void adminUpdateIncome(Income incomeData) {
         Income existingIncome = incomeRepository.findById(incomeData.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Khoản thu nhập không tồn tại (ID: " + incomeData.getId() + ")"));
@@ -178,6 +199,11 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "DELETE",
+        targetEntity = "INCOME",
+        description = "deleted income"
+    )
     public void deleteIncomeById(Integer id) {
         // Admin xóa trực tiếp (Force Delete), chỉ cần check tồn tại
         if (!incomeRepository.existsById(id)) {

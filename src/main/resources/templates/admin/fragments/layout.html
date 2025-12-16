@@ -70,6 +70,13 @@
             </li>
 
             <li>
+                <a th:href="@{/admin/activity-logs}" class="nav-link"
+                   th:classappend="${@urlUtils.isActive('/admin/activity-logs')} ? 'active'">
+                    <i class="fas fa-history text-info"></i> Activity Logs
+                </a>
+            </li>
+
+            <li>
                 <a href="#" class="nav-link">
                     <i class="fas fa-chart-line"></i> Reports & Analytics
                 </a>

@@ -87,7 +87,7 @@ public class AdminCategoryController {
         }
     }
 
-    // SAVE (CREATE or UPDATE)
+    // SAVE (CREATE & UPDATE)
     @PostMapping("/save")
     public String saveCategory(
             @RequestParam(required = false) Integer id,
@@ -111,17 +111,20 @@ public class AdminCategoryController {
                 // Keep existing icon when editing
                 Category existing = categoryService.adminGetGlobalCategory(id);
                 request.setIcon(existing.getIcon());
+            } else {
+                // No icon for new category
+                request.setIcon("");
             }
 
-            if (id == null) {
-                // Create new
-                categoryService.adminCreateGlobalCategory(request);
-                ra.addFlashAttribute("message", "Tạo danh mục thành công!");
-            } else {
-                // Update existing
+            // Create or Update
+            if (id != null) {
                 categoryService.adminUpdateGlobalCategory(id, request);
                 ra.addFlashAttribute("message", "Cập nhật danh mục thành công!");
+            } else {
+                categoryService.adminCreateGlobalCategory(request);
+                ra.addFlashAttribute("message", "Tạo danh mục thành công!");
             }
+            
             return "redirect:/admin/categories";
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Lỗi: " + e.getMessage());

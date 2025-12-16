@@ -1,5 +1,6 @@
 package com.group4.expense_manager.service.impl;
 
+import com.group4.expense_manager.annotation.LogActivity;
 import com.group4.expense_manager.dto.request.CreateCategoryRequest;
 import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.CategoryType;
@@ -50,6 +51,11 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	@Transactional
+	@LogActivity(
+        action = "CREATE",
+        targetEntity = "CATEGORY",
+        description = "Created new category: {0}"
+    )
 	public Category createCategory(User user, CreateCategoryRequest request) {
 		Category category = new Category();
 		category.setName(request.getName());
@@ -62,6 +68,11 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	@Transactional
+	@LogActivity(
+        action = "UPDATE",
+        targetEntity = "CATEGORY",
+        description = "Updated category information"
+    )
 	public Category updateCategory(Integer categoryId, User user, CreateCategoryRequest request) {
 		Category category = getCategory(categoryId, user);
 		// Không cho sửa danh mục global (user == null)
@@ -72,7 +83,7 @@ public class CategoryServiceImpl implements CategoryService {
 		category.setDescription(request.getDescription());
 		category.setType(request.getType());
 		if (request.getIcon() != null && !request.getIcon().isBlank()) {
-			cloudinaryService.deleteIcon(category.getIcon());
+			// cloudinaryService.deleteIcon(category.getIcon());
 			category.setIcon(request.getIcon());
 		}
 		return categoryRepository.save(category);
@@ -80,6 +91,11 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	@Transactional
+	@LogActivity(
+        action = "DELETE",
+        targetEntity = "CATEGORY",
+        description = "Deleted category"
+    )
 	public void deleteCategory(Integer categoryId, User user) {
 		Category category = getCategory(categoryId, user);
 		if (category.getUser() == null) {
@@ -121,6 +137,11 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	@Transactional
+	@LogActivity(
+        action = "CREATE",
+        targetEntity = "CATEGORY",
+        description = "Created new category"
+    )
 	public Category adminCreateGlobalCategory(CreateCategoryRequest request) {
 		Category category = new Category();
 		category.setName(request.getName());
@@ -134,16 +155,21 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	@Transactional
+	@LogActivity(
+        action = "UPDATE",
+        targetEntity = "CATEGORY",
+        description = "updated category"
+    )
 	public Category adminUpdateGlobalCategory(Integer categoryId, CreateCategoryRequest request) {
 		Category category = adminGetGlobalCategory(categoryId);
 		category.setName(request.getName());
 		category.setDescription(request.getDescription());
 		category.setType(request.getType());
 		if (request.getIcon() != null && !request.getIcon().isBlank()) {
-			// Delete old icon if exists and different from new one
-			if (category.getIcon() != null && !category.getIcon().equals(request.getIcon())) {
-				cloudinaryService.deleteIcon(category.getIcon());
-			}
+			// // Delete old icon if exists and different from new one
+			// if (category.getIcon() != null && !category.getIcon().equals(request.getIcon())) {
+			// 	cloudinaryService.deleteIcon(category.getIcon());
+			// }
 			category.setIcon(request.getIcon());
 		}
 		return categoryRepository.save(category);
@@ -151,6 +177,11 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	@Transactional
+	@LogActivity(
+        action = "DELETE",
+        targetEntity = "CATEGORY",
+        description = "deleted category"
+    )
 	public void adminSoftDeleteCategory(Integer categoryId) {
 		Category category = adminGetGlobalCategory(categoryId);
 		// Soft delete - set deleted flag to true
