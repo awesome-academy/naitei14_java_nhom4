@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Integer> {
@@ -54,4 +56,14 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    @Query("SELECT b FROM Budget b WHERE " +
+            "b.user.id = :userId AND " +
+            "b.category.id = :categoryId AND " +
+            "b.startDate <= :expenseDate AND " +
+            "b.endDate >= :expenseDate")
+    Optional<Budget> findActiveBudgetForExpense(
+            @Param("userId") Integer userId,
+            @Param("categoryId") Integer categoryId,
+            @Param("expenseDate") LocalDate expenseDate);
 }

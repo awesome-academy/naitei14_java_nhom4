@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.math.BigDecimal;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
@@ -56,4 +57,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     Page<Expense> findByExpenseDateBetween(LocalDate fromDate, LocalDate toDate, Pageable pageable);
 
     Page<Expense> findByDescriptionContaining(String description, Pageable pageable);
+
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE " +
+            "e.user.id = :userId AND " +
+            "e.category.id = :categoryId AND " +
+            "e.expenseDate BETWEEN :startDate AND :endDate")
+    Optional<BigDecimal> sumExpensesByBudgetPeriod(
+            @Param("userId") Integer userId,
+            @Param("categoryId") Integer categoryId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }

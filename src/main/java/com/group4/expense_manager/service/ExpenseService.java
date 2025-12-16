@@ -20,10 +20,11 @@ public interface ExpenseService {
     long getTotalExpenses(User user);
     double getTotalAmount(User user);
     double getAverageAmount(User user);
-
+    void checkBudgetAlert(Expense newExpense);
     // Admin methods
     Page<Expense> getAllExpensesForAdmin(Integer userId, Integer categoryId, LocalDate startDate, LocalDate endDate, String keyword, Pageable pageable);
     Optional<Expense> getExpenseById(Integer expenseId);
     void deleteExpenseById(Integer expenseId);
     void adminUpdateExpense(Expense expense);
+
 }
