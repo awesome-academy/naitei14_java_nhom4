@@ -15,7 +15,12 @@
             <p>Welcome back! Please sign in to your account</p>
         </div>
 
-        <div th:if="${param.error}" class="alert alert-error">
+        <div th:if="${param.error != null and param.error[0] == 'not_admin'}" class="alert alert-error">
+            <span class="alert-icon"><i class="fas fa-user-lock"></i></span>
+            Access denied. You do not have admin privileges.
+        </div>
+
+        <div th:if="${param.error != null and param.error[0] != 'not_admin'}" class="alert alert-error">
             <span class="alert-icon"><i class="fas fa-exclamation-triangle"></i></span>
             Invalid email or password. Please try again.
         </div>

@@ -31,7 +31,7 @@ public class AuthController {
     @GetMapping("/login")
     public String showLoginForm() {
         if (isAuthenticated()) {
-            return "redirect:/dashboard";
+            return "redirect:/admin/dashboard";
         }
         return "login";
     }
@@ -39,7 +39,7 @@ public class AuthController {
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
         if (isAuthenticated()) {
-            return "redirect:/dashboard";
+            return "redirect:/admin/dashboard";
         }
         model.addAttribute("userRequest", new UserRegistrationRequest());
         return "client/register";

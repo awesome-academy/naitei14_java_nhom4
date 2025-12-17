@@ -67,4 +67,26 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
             @Param("categoryId") Integer categoryId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    // --- 1. Báo cáo Chi tiêu (Tháng/Quý/Năm) ---
+    @Query("SELECT MONTH(e.expenseDate), SUM(e.amount) FROM Expense e WHERE e.user.id = :userId AND YEAR(e.expenseDate) = :year GROUP BY MONTH(e.expenseDate) ORDER BY MONTH(e.expenseDate)")
+    List<Object[]> findMonthlyExpenses(@Param("userId") Integer userId, @Param("year") int year);
+
+    @Query("SELECT QUARTER(e.expenseDate), SUM(e.amount) FROM Expense e WHERE e.user.id = :userId AND YEAR(e.expenseDate) = :year GROUP BY QUARTER(e.expenseDate) ORDER BY QUARTER(e.expenseDate)")
+    List<Object[]> findQuarterlyExpenses(@Param("userId") Integer userId, @Param("year") int year);
+
+    @Query("SELECT YEAR(e.expenseDate), SUM(e.amount) FROM Expense e WHERE e.user.id = :userId GROUP BY YEAR(e.expenseDate) ORDER BY YEAR(e.expenseDate)")
+    List<Object[]> findYearlyExpenses(@Param("userId") Integer userId);
+
+    // --- 2. Phân bố theo Danh mục ---
+    @Query("SELECT e.category.name, SUM(e.amount) FROM Expense e WHERE e.user.id = :userId AND e.expenseDate BETWEEN :startDate AND :endDate GROUP BY e.category.name")
+    List<Object[]> getExpenseDistribution(@Param("userId") Integer userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    // --- Hỗ trợ tính tổng ---
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.user.id = :userId AND e.expenseDate BETWEEN :startDate AND :endDate")
+    BigDecimal getTotalExpense(@Param("userId") Integer userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    // --- 4. Xu hướng (Trend) ---
+    @Query("SELECT MONTH(e.expenseDate), SUM(e.amount) FROM Expense e WHERE e.user.id = :userId AND YEAR(e.expenseDate) = :year GROUP BY MONTH(e.expenseDate)")
+    List<Object[]> getMonthlyExpenseTrend(@Param("userId") Integer userId, @Param("year") int year);
 }

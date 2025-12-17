@@ -24,39 +24,27 @@ public class SecurityConfig {
     @Autowired
     private CustomJwtAuthenticationConverter customJwtAuthenticationConverter;
 
+    /**
+     * CHAIN 1: Dành cho API (Bao gồm cả Auth và Resource)
+     */
     @Bean
     @Order(1)
-    public SecurityFilterChain authChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/api/auth/**")
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(apiAuthenticationEntryPoint)
-                )
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        return http.build();
-    }
-
-    @Bean
-    @Order(2)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
+        HttpSecurity httpSecurity = http
                 .securityMatcher("/api/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
+
+                // Cấu hình phân quyền
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
+                // Cấu hình OAuth2 Resource Server (JWT)
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .jwtAuthenticationConverter(customJwtAuthenticationConverter)
@@ -67,15 +55,19 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * CHAIN 2: Dành cho Web Admin (MVC truyền thống)
+     */
     @Bean
-    @Order(3)
+    @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/**")
-                .csrf(Customizer.withDefaults())
+                .securityMatcher("/**") // Hứng tất cả các request còn lại
+                .csrf(Customizer.withDefaults()) // Bật CSRF cho Web (An toàn cho form)
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/login", "/register").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        .requestMatchers("/login", "/register", "/forgot-password").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
