@@ -108,4 +108,12 @@ public interface IncomeRepository extends JpaRepository<Income, Integer> {
     // Filter nhanh theo khoảng thời gian (Bất kể user nào)
     Page<Income> findByIncomeDateBetween(LocalDate start, LocalDate end, Pageable pageable);
 
+    // --- Hỗ trợ tính tổng Thu nhập ---
+    @Query("SELECT SUM(i.amount) FROM Income i WHERE i.user.id = :userId AND i.incomeDate BETWEEN :startDate AND :endDate")
+    BigDecimal getTotalIncome(@Param("userId") Integer userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    // --- 4. Xu hướng (Trend) ---
+    @Query("SELECT MONTH(i.incomeDate), SUM(i.amount) FROM Income i WHERE i.user.id = :userId AND YEAR(i.incomeDate) = :year GROUP BY MONTH(i.incomeDate)")
+    List<Object[]> getMonthlyIncomeTrend(@Param("userId") Integer userId, @Param("year") int year);
+
 }
