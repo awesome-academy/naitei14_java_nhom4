@@ -3,8 +3,10 @@ package com.group4.expense_manager.controller.client;
 import com.group4.expense_manager.dto.request.LoginApiRequest;
 import com.group4.expense_manager.dto.request.UserRegistrationRequest; // Import DTO đăng ký
 import com.group4.expense_manager.dto.response.AuthResponse;
+import com.group4.expense_manager.entity.ActivityLog;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.exception.ResourceNotFoundException;
+import com.group4.expense_manager.service.ActivityLogService;
 import com.group4.expense_manager.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +38,17 @@ public class ApiAuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
     private final UserService userService;
+    private final ActivityLogService activityLogService;
 
     @Autowired
     public ApiAuthController(AuthenticationManager authenticationManager,
                              JwtEncoder jwtEncoder,
-                             UserService userService) {
+                             UserService userService,
+                             ActivityLogService activityLogService) {
         this.authenticationManager = authenticationManager;
         this.jwtEncoder = jwtEncoder;
         this.userService = userService;
+        this.activityLogService = activityLogService;
     }
 
 
@@ -61,6 +66,15 @@ public class ApiAuthController {
 
         String token = createToken(authentication);
         User user = (User) authentication.getPrincipal();
+
+        // Tạo activity log cho API login
+        ActivityLog log = new ActivityLog();
+        log.setUser(user);
+        log.setAction("LOGIN");
+        log.setTargetEntity("User");
+        log.setTargetId(user.getId());
+        log.setDescription("Đăng nhập");
+        activityLogService.createActivityLog(log);
 
         AuthResponse response = new AuthResponse(token, "Bearer", user.getRole().toUpperCase());
         return ResponseEntity.ok(response);
@@ -86,9 +100,22 @@ public class ApiAuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutApi(@RequestHeader(name = "Authorization") String authHeader) {
+    public ResponseEntity<?> logoutApi(@RequestHeader(name = "Authorization") String authHeader, 
+                                      @AuthenticationPrincipal User user) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
+            
+            // Tạo activity log cho API logout
+            if (user != null) {
+                ActivityLog log = new ActivityLog();
+                log.setUser(user);
+                log.setAction("LOGOUT");
+                log.setTargetEntity("User");
+                log.setTargetId(user.getId());
+                log.setDescription("Đăng xuất");
+                activityLogService.createActivityLog(log);
+            }
+            
             return ResponseEntity.ok("Logout thành công. Token đã được hủy hiệu lực (local).");
         }
         return ResponseEntity.badRequest().body("Token không hợp lệ.");

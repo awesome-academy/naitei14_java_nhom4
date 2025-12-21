@@ -19,6 +19,9 @@ public class SecurityConfig {
     private CustomAuthenticationSuccessHandler customSuccessHandler;
 
     @Autowired
+    private CustomLogoutHandler customLogoutHandler;
+
+    @Autowired
     private ApiAuthenticationEntryPoint apiAuthenticationEntryPoint;
 
     @Autowired
@@ -80,6 +83,7 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
+                        .addLogoutHandler(customLogoutHandler)
                         .logoutSuccessUrl("/login?logout=true")
                         .deleteCookies("JSESSIONID")
                         .permitAll()
