@@ -3,29 +3,29 @@ package com.group4.expense_manager.config;
 import com.group4.expense_manager.entity.ActivityLog;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.service.ActivityLogService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class AuthenticationEventListener {
+public class CustomLogoutHandler implements LogoutHandler {
 
     private final ActivityLogService activityLogService;
 
-    @EventListener
-    public void onAuthenticationSuccess(AuthenticationSuccessEvent event) {
-        Object principal = event.getAuthentication().getPrincipal();
-        
-        if (principal instanceof User user) {
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof User user) {
             // Tạo activity log
             ActivityLog log = new ActivityLog();
             log.setUser(user);
-            log.setAction("LOGIN");
+            log.setAction("LOGOUT");
             log.setTargetEntity("User");
             log.setTargetId(user.getId());
-            log.setDescription("Đã đăng nhập");
+            log.setDescription("Đăng xuất");
             
             activityLogService.createActivityLog(log);
         }
