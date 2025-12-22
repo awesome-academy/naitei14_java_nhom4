@@ -61,13 +61,19 @@ public class CategoryController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<CategoryResponse> createCategory(
 			@AuthenticationPrincipal User user,
-			@Valid @ModelAttribute CreateCategoryRequest request,
-			@RequestPart(value = "iconFile", required = false) MultipartFile iconFile
+			@RequestParam("name") String name,
+			@RequestParam(value = "description", required = false) String description,
+			@RequestParam("type") CategoryType type, // Spring sẽ tự convert chuỗi sang Enum
+			@RequestParam(value = "iconFile", required = false) MultipartFile iconFile
 	) {
 		String iconUrl = "";
 		if (iconFile != null && !iconFile.isEmpty()) {
 			iconUrl = cloudinaryService.uploadIcon(iconFile, "categories");
 		}
+		CreateCategoryRequest request = new CreateCategoryRequest();
+		request.setName(name);
+		request.setDescription(description);
+		request.setType(type);
 		request.setIcon(iconUrl);
 		Category category = categoryService.createCategory(user, request);
 		return ResponseEntity
@@ -80,9 +86,15 @@ public class CategoryController {
 	public ResponseEntity<CategoryResponse> updateCategory(
 			@PathVariable Integer id,
 			@AuthenticationPrincipal User user,
-			@Valid @ModelAttribute CreateCategoryRequest request,
-			@RequestPart(value = "iconFile", required = false) MultipartFile iconFile
+			@RequestParam("name") String name,
+			@RequestParam(value = "description", required = false) String description,
+			@RequestParam("type") CategoryType type,
+			@RequestParam(value = "iconFile", required = false) MultipartFile iconFile
 	) {
+		CreateCategoryRequest request = new CreateCategoryRequest();
+		request.setName(name);
+		request.setDescription(description);
+		request.setType(type);
 		// Upload icon mới nếu có
 		if (iconFile != null && !iconFile.isEmpty()) {
 			String iconUrl = cloudinaryService.uploadIcon(iconFile, "categories");
