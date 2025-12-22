@@ -24,7 +24,7 @@ public class CustomLogoutHandler implements LogoutHandler {
             log.setUser(user);
             log.setAction("LOGOUT");
             log.setTargetEntity("User");
-            log.setTargetId(user.getId());
+//            log.setTargetId(user.getId());
             log.setDescription("Đăng xuất");
             
             activityLogService.createActivityLog(log);
