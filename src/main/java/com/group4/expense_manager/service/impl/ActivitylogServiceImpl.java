@@ -23,7 +23,7 @@ public class ActivityLogServiceImpl implements ActivityLogService {
     @Override
     @Transactional(readOnly = true)
     public Page<ActivityLogResponse> getAllActivityLogs(Pageable pageable) {
-        return activityLogRepository.findByFilters(null, "", "", "", null, null, pageable)
+        return activityLogRepository.findByFilters(null, "", "", null, null, pageable)
                 .map(activityLogMapper::toResponse);
     }
 
@@ -38,26 +38,26 @@ public class ActivityLogServiceImpl implements ActivityLogService {
     @Override
     @Transactional(readOnly = true)
     public Page<ActivityLogResponse> getActivityLogsByUserId(Long userId, Pageable pageable) {
-        return activityLogRepository.findByFilters(userId, "", "", "", null, null, pageable)
+        return activityLogRepository.findByFilters(userId, "", "", null, null, pageable)
                 .map(activityLogMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ActivityLogResponse> getActivityLogsByFilters(Long userId, String entityType, String action, 
-                                                                String role, java.time.LocalDateTime startDate, 
+                                                                java.time.LocalDateTime startDate, 
                                                                 java.time.LocalDateTime endDate, Pageable pageable) {
         // Chuyển null thành empty string để query hoạt động đúng
         String normalizedEntityType = (entityType != null && !entityType.trim().isEmpty()) ? entityType : "";
         String normalizedAction = (action != null && !action.trim().isEmpty()) ? action : "";
-        String normalizedRole = (role != null && !role.trim().isEmpty()) ? role : "";
+        // String normalizedRole = (role != null && !role.trim().isEmpty()) ? role : "";
         
         // Chuyển đổi LocalDateTime sang Instant
         java.time.Instant startInstant = startDate != null ? startDate.atZone(java.time.ZoneId.systemDefault()).toInstant() : null;
         java.time.Instant endInstant = endDate != null ? endDate.atZone(java.time.ZoneId.systemDefault()).toInstant() : null;
         
         return activityLogRepository.findByFilters(userId, normalizedEntityType, normalizedAction, 
-                                                    normalizedRole, startInstant, endInstant, pageable)
+                                                    startInstant, endInstant, pageable)
                 .map(activityLogMapper::toResponse);
     }
 

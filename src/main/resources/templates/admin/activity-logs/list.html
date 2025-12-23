@@ -30,6 +30,7 @@
                         <option value="BUDGET" th:selected="${entityType == 'BUDGET'}">BUDGET</option>
                         <option value="EXPENSE" th:selected="${entityType == 'EXPENSE'}">EXPENSE</option>
                         <option value="INCOME" th:selected="${entityType == 'INCOME'}">INCOME</option>
+                        <option value="BUDGET_TEMPLATE" th:selected="${entityType == 'BUDGET_TEMPLATE'}">BUDGET_TEMPLATE</option>
                     </select>
                 </div>
 
@@ -45,14 +46,14 @@
                     </select>
                 </div>
 
-                <div class="col-md-3">
+                <!-- <div class="col-md-3">
                     <label class="form-label">User Role</label>
                     <select name="role" class="form-select">
                         <option value="">-- All Roles --</option>
                         <option value="USER" th:selected="${role == 'USER'}">USER</option>
                         <option value="ADMIN" th:selected="${role == 'ADMIN'}">ADMIN</option>
                     </select>
-                </div>
+                </div> -->
             </div>
 
             <div class="row mb-3">

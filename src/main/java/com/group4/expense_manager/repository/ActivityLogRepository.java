@@ -17,7 +17,6 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> 
            "(:userId IS NULL OR al.user.id = :userId) AND " +
            "(:entityType IS NULL OR :entityType = '' OR al.targetEntity = :entityType) AND " +
            "(:action IS NULL OR :action = '' OR al.action = :action) AND " +
-           "(:role IS NULL OR :role = '' OR al.user.role = :role) AND " +
            "(:startDate IS NULL OR al.createdAt >= :startDate) AND " +
            "(:endDate IS NULL OR al.createdAt <= :endDate) " +
            "ORDER BY al.createdAt DESC")
@@ -25,7 +24,6 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> 
             @Param("userId") Long userId,
             @Param("entityType") String entityType,
             @Param("action") String action,
-            @Param("role") String role,
             @Param("startDate") java.time.Instant startDate,
             @Param("endDate") java.time.Instant endDate,
             Pageable pageable);

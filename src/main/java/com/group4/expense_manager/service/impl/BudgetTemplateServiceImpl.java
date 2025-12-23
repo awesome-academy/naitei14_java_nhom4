@@ -1,5 +1,6 @@
 package com.group4.expense_manager.service.impl;
 
+import com.group4.expense_manager.annotation.LogActivity;
 import com.group4.expense_manager.dto.request.BudgetTemplateRequest;
 import com.group4.expense_manager.entity.BudgetTemplate;
 import com.group4.expense_manager.entity.BudgetTemplateItem;
@@ -66,6 +67,11 @@ public class BudgetTemplateServiceImpl implements BudgetTemplateService {
     
     @Override
     @Transactional
+    @LogActivity(
+        action = "CREATE",
+        targetEntity = "BUDGET_TEMPLATE",
+        description = "Created new budget template"
+    )
     public BudgetTemplate createTemplate(BudgetTemplateRequest request) {
         BudgetTemplate template = new BudgetTemplate();
         template.setName(request.getName());
@@ -100,6 +106,11 @@ public class BudgetTemplateServiceImpl implements BudgetTemplateService {
     
     @Override
     @Transactional
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "BUDGET_TEMPLATE",
+        description = "Updated budget template"
+    )
     public BudgetTemplate updateTemplate(Integer id, BudgetTemplateRequest request) {
         BudgetTemplate template = templateRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy mẫu ngân sách với ID: " + id));
@@ -135,6 +146,11 @@ public class BudgetTemplateServiceImpl implements BudgetTemplateService {
     
     @Override
     @Transactional
+    @LogActivity(
+        action = "DELETE",
+        targetEntity = "BUDGET_TEMPLATE",
+        description = "Deleted budget template"
+    )
     public void deleteTemplate(Integer id) {
         BudgetTemplate template = templateRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy mẫu ngân sách với ID: " + id));

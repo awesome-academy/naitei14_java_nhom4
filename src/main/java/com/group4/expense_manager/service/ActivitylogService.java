@@ -22,7 +22,7 @@ public interface ActivityLogService {
     // Lấy danh sách activity log với filters kết hợp (userId, entityType, action, role, dateRange)
     // Truyền null cho tham số nào không muốn filter
     Page<ActivityLogResponse> getActivityLogsByFilters(Long userId, String entityType, String action, 
-                                                        String role, java.time.LocalDateTime startDate, 
+                                                        java.time.LocalDateTime startDate, 
                                                         java.time.LocalDateTime endDate, Pageable pageable);
     
     // Tạo activity log mới (cho internal use - từ AOP)
