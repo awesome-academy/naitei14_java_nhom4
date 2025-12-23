@@ -1,5 +1,6 @@
 package com.group4.expense_manager.service;
 
+import com.group4.expense_manager.dto.request.ExpenseRequest;
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.entity.User;
 import org.springframework.data.domain.Page;
@@ -14,8 +15,8 @@ public interface ExpenseService {
     Page<Expense> listExpensesOfUser(User user, Pageable pageable);
     Page<Expense> filterExpensesOfUser(User user, Integer categoryId, LocalDate fromDate, LocalDate toDate, Pageable pageable, String search, Double minAmount, Double maxAmount);
     Expense getExpenseOfUser(Integer expenseId, User user);
-    Expense createExpense(User user, Expense expense);
-    Expense updateExpense(Integer expenseId, User user, Expense expense);
+    Expense createExpense(User user, ExpenseRequest request);
+    Expense updateExpense(Integer expenseId, User user, ExpenseRequest request);
     void deleteExpense(Integer expenseId, User user);
     long getTotalExpenses(User user);
     double getTotalAmount(User user);

@@ -1,5 +1,7 @@
 package com.group4.expense_manager.controller.admin;
 
+import com.group4.expense_manager.entity.Category;
+import com.group4.expense_manager.entity.CategoryType;
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.repository.CategoryRepository;
 import com.group4.expense_manager.repository.UserRepository;
@@ -16,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/expenses")
@@ -54,6 +57,21 @@ public class AdminExpenseController {
             PageRequest.of(page - 1, size, sort)
         );
         List<?> users = userRepository.findByRoleIgnoreCase("CLIENT");
+        
+        // Lấy danh sách categoryId đã được sử dụng trong chi tiêu
+        List<Integer> usedCategoryIds = expensePage.getContent().stream()
+            .filter(e -> e.getCategory() != null)
+            .map(e -> e.getCategory().getId())
+            .distinct()
+            .collect(Collectors.toList());
+        
+        // Chỉ lấy các category type = expense đã được sử dụng
+        List<Category> categories = usedCategoryIds.isEmpty() 
+            ? List.of() 
+            : categoryRepository.findAllById(usedCategoryIds).stream()
+                .filter(cat -> cat.getType() == CategoryType.expense)
+                .collect(Collectors.toList());
+        
         model.addAttribute("expenses", expensePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", expensePage.getTotalPages());
@@ -61,7 +79,7 @@ public class AdminExpenseController {
         model.addAttribute("users", users);
         model.addAttribute("userId", userId);
         model.addAttribute("categoryId", categoryId);
-        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("categories", categories);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("keyword", keyword);
@@ -81,7 +99,7 @@ public class AdminExpenseController {
             return "redirect:/admin/expenses";
         }
         model.addAttribute("expense", expense);
-        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("categories", categoryRepository.findByType(CategoryType.expense));
         return "admin/expenses/form";
     }
 

@@ -6,6 +6,9 @@
 <div th:fragment="content">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="text-primary"><i class="fas fa-edit"></i> <span th:text="${expense.id != null ? 'Chỉnh sửa' : 'Thêm mới'}"></span> Chi tiêu #<span th:if="${expense.id != null}" th:text="${expense.id}"></span></h3>
+        <a th:href="@{/admin/expenses}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
     </div>
 
     <div class="card shadow" style="max-width: 800px; margin: 0 auto;">

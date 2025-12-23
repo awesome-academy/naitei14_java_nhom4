@@ -1,6 +1,6 @@
-
 package com.group4.expense_manager.controller.client;
 
+import com.group4.expense_manager.dto.request.ExpenseRequest;
 import com.group4.expense_manager.dto.response.ExpenseResponse;
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.entity.User;
@@ -98,9 +98,9 @@ public class ExpenseController {
     @PostMapping
     public ResponseEntity<ExpenseResponse> createExpense(
             @AuthenticationPrincipal User user,
-            @RequestBody @Valid Expense expense
+            @RequestBody @Valid ExpenseRequest request
     ) {
-        Expense created = expenseService.createExpense(user, expense);
+        Expense created = expenseService.createExpense(user, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(expenseMapper.toResponse(created));
     }
 
@@ -117,9 +117,9 @@ public class ExpenseController {
     public ResponseEntity<ExpenseResponse> updateExpense(
             @PathVariable Integer id,
             @AuthenticationPrincipal User user,
-            @RequestBody @Valid Expense expense
+            @RequestBody @Valid ExpenseRequest request
     ) {
-        Expense updated = expenseService.updateExpense(id, user, expense);
+        Expense updated = expenseService.updateExpense(id, user, request);
         return ResponseEntity.ok(expenseMapper.toResponse(updated));
     }
 

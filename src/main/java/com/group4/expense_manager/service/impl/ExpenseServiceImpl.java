@@ -1,6 +1,7 @@
 package com.group4.expense_manager.service.impl;
 
 import com.group4.expense_manager.annotation.LogActivity;
+import com.group4.expense_manager.dto.request.ExpenseRequest;
 import com.group4.expense_manager.entity.Category;
 import com.group4.expense_manager.entity.Expense;
 import com.group4.expense_manager.entity.Budget;
@@ -141,17 +142,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         targetEntity = "EXPENSE",
         description = "Created new expense"
     )
-    public Expense createExpense(User user, Expense expense) {
-        // Map user và validate category nếu có
-        expense.setUser(user);
-        if (expense.getCategory() != null && expense.getCategory().getId() != null) {
-            Category category = validateCategory(expense.getCategory().getId(), user);
-            expense.setCategory(category);
-        }
-        // Currency mặc định nếu null
-        if (expense.getCurrency() == null || expense.getCurrency().isBlank()) {
-            expense.setCurrency(user.getDefaultCurrency());
-        }
+    public Expense createExpense(User user, ExpenseRequest request) {
+        Expense expense = new Expense();
+        mapRequestToEntity(request, expense, user);
         checkBudgetAlert(expense);
         return expenseRepository.save(expense);
     }
@@ -163,23 +156,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         targetEntity = "EXPENSE",
         description = "Updated expense"
     )
-    public Expense updateExpense(Integer expenseId, User user, Expense expenseData) {
+    public Expense updateExpense(Integer expenseId, User user, ExpenseRequest request) {
         Expense expense = getExpenseOfUser(expenseId, user);
-        // Cập nhật các trường cơ bản
-        if (expenseData.getName() != null) expense.setName(expenseData.getName());
-        if (expenseData.getDescription() != null) expense.setDescription(expenseData.getDescription());
-        if (expenseData.getAmount() != null) expense.setAmount(expenseData.getAmount());
-        if (expenseData.getCurrency() != null) expense.setCurrency(expenseData.getCurrency());
-        if (expenseData.getExpenseDate() != null) expense.setExpenseDate(expenseData.getExpenseDate());
-        if (expenseData.getCategory() != null && expenseData.getCategory().getId() != null) {
-            Category category = validateCategory(expenseData.getCategory().getId(), user);
-            expense.setCategory(category);
-        }
-        if (expenseData.getNote() != null) expense.setNote(expenseData.getNote());
-        // Recurring
-        if (expenseData.getIsRecurring() != null) expense.setIsRecurring(expenseData.getIsRecurring());
-        if (expenseData.getRecurringInterval() != null) expense.setRecurringInterval(expenseData.getRecurringInterval());
-        if (expenseData.getRecurringEndDate() != null) expense.setRecurringEndDate(expenseData.getRecurringEndDate());
+        mapRequestToEntity(request, expense, user);
         return expenseRepository.save(expense);
     }
 
@@ -295,6 +274,50 @@ public class ExpenseServiceImpl implements ExpenseService {
     // ===============================
     // PHẦN 3: HELPER METHODS
     // ===============================
+    
+    /**
+     * Map dữ liệu từ ExpenseRequest sang Expense entity
+     */
+    private void mapRequestToEntity(ExpenseRequest request, Expense expense, User user) {
+        // 1. Map các trường thông tin cơ bản
+        expense.setUser(user);
+        expense.setName(request.getName());
+        expense.setDescription(request.getDescription());
+        expense.setAmount(request.getAmount());
+        expense.setExpenseDate(request.getExpenseDate());
+        expense.setNote(request.getNote());
+
+        // 2. Xử lý Category
+        if (request.getCategoryId() != null) {
+            Category category = validateCategory(request.getCategoryId(), user);
+            expense.setCategory(category);
+        } else {
+            expense.setCategory(null);
+        }
+
+        // 3. Xử lý Currency
+        String currency = request.getCurrency();
+        if (currency == null || currency.isBlank()) {
+            currency = user.getDefaultCurrency();
+        }
+        expense.setCurrency(currency);
+
+        // 4. Xử lý Recurring
+        boolean isRecurring = (request.getIsRecurring() != null && request.getIsRecurring());
+        expense.setIsRecurring(isRecurring);
+
+        if (isRecurring) {
+            if (request.getRecurringInterval() == null) {
+                throw new RuntimeException("Vui lòng chọn chu kỳ lặp lại.");
+            }
+            expense.setRecurringInterval(request.getRecurringInterval());
+            expense.setRecurringEndDate(request.getRecurringEndDate());
+        } else {
+            expense.setRecurringInterval(null);
+            expense.setRecurringEndDate(null);
+        }
+    }
+    
     private Category validateCategory(Integer categoryId, User user) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
