@@ -1,5 +1,6 @@
 package com.group4.expense_manager.controller.admin;
 
+import com.group4.expense_manager.entity.CategoryType;
 import com.group4.expense_manager.entity.Income;
 import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.repository.CategoryRepository;
@@ -99,7 +100,7 @@ public class AdminIncomeController {
             return "redirect:/admin/incomes";
         }
         model.addAttribute("income", income);
-        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("categories", categoryRepository.findByType(CategoryType.income));
         return "admin/incomes/form";
     }
 
