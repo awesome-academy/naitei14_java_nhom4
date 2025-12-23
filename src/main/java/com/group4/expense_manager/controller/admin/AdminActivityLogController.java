@@ -23,7 +23,7 @@ public class AdminActivityLogController {
                                     @RequestParam(name = "userId", required = false) Long userId,
                                     @RequestParam(name = "entityType", required = false) String entityType,
                                     @RequestParam(name = "action", required = false) String action,
-                                    @RequestParam(name = "role", required = false) String role,
+                                    // @RequestParam(name = "role", required = false) String role,
                                     @RequestParam(name = "startDate", required = false) String startDate,
                                     @RequestParam(name = "endDate", required = false) String endDate,
                                     @RequestParam(name = "page", defaultValue = "1") int page,
@@ -50,8 +50,8 @@ public class AdminActivityLogController {
 
         // Call service with filters
         Page<ActivityLogResponse> pageActivityLogs;
-        if (userId != null || entityType != null || action != null || role != null || startDateTime != null || endDateTime != null) {
-            pageActivityLogs = activityLogService.getActivityLogsByFilters(userId, entityType, action, role, startDateTime, endDateTime, PageRequest.of(page - 1, pageSize, sort));
+        if (userId != null || entityType != null || action != null || startDateTime != null || endDateTime != null) {
+            pageActivityLogs = activityLogService.getActivityLogsByFilters(userId, entityType, action, startDateTime, endDateTime, PageRequest.of(page - 1, pageSize, sort));
         } else {
             pageActivityLogs = activityLogService.getAllActivityLogs(PageRequest.of(page - 1, pageSize, sort));
         }
@@ -65,7 +65,7 @@ public class AdminActivityLogController {
         model.addAttribute("userId", userId);
         model.addAttribute("entityType", entityType);
         model.addAttribute("action", action);
-        model.addAttribute("role", role);
+        // model.addAttribute("role", role);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
 

@@ -54,7 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
 	@LogActivity(
         action = "CREATE",
         targetEntity = "CATEGORY",
-        description = "Created new category: {0}"
+        description = "Created new category"
     )
 	public Category createCategory(User user, CreateCategoryRequest request) {
 		Category category = new Category();

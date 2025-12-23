@@ -72,7 +72,7 @@ public class ApiAuthController {
         log.setUser(user);
         log.setAction("LOGIN");
         log.setTargetEntity("User");
-        log.setTargetId(user.getId());
+//        log.setTargetId(user.getId());
         log.setDescription("Đăng nhập");
         activityLogService.createActivityLog(log);
 
@@ -111,7 +111,7 @@ public class ApiAuthController {
                 log.setUser(user);
                 log.setAction("LOGOUT");
                 log.setTargetEntity("User");
-                log.setTargetId(user.getId());
+//                log.setTargetId(user.getId());
                 log.setDescription("Đăng xuất");
                 activityLogService.createActivityLog(log);
             }

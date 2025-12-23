@@ -8,6 +8,8 @@ import com.group4.expense_manager.entity.User;
 import com.group4.expense_manager.mapper.CategoryMapper;
 import com.group4.expense_manager.service.CategoryService;
 import com.group4.expense_manager.service.CloudinaryService;
+
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,6 +36,7 @@ public class CategoryController {
 	private CloudinaryService cloudinaryService;
 
 	// LIST (Optional filter by type)
+	@Operation(summary = "Danh sách category", description = "Lấy danh sách category của user")
 	@GetMapping
 	public ResponseEntity<Page<CategoryResponse>> listCategories(
 			@AuthenticationPrincipal User user,
@@ -47,6 +50,7 @@ public class CategoryController {
 		return ResponseEntity.ok(categories.map(categoryMapper::toResponse));
 	}
 
+    @Operation(summary = "Chi tiết category", description = "Lấy chi tiết một category theo id")
 	// GET DETAIL
 	@GetMapping("/{id}")
 	public ResponseEntity<CategoryResponse> getCategory(
@@ -57,7 +61,7 @@ public class CategoryController {
 		return ResponseEntity.ok(categoryMapper.toResponse(category));
 	}
 
-
+    @Operation(summary = "Tạo mới category", description = "Tạo mới một category cho user")
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<CategoryResponse> createCategory(
 			@AuthenticationPrincipal User user,
@@ -81,7 +85,7 @@ public class CategoryController {
 				.body(categoryMapper.toResponse(category));
 	}
 
-
+    @Operation(summary = "Cập nhật category", description = "Cập nhật thông tin category theo id")
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<CategoryResponse> updateCategory(
 			@PathVariable Integer id,
@@ -107,6 +111,7 @@ public class CategoryController {
 
 
 	// DELETE (Only user-owned)
+    @Operation(summary = "Xóa category", description = "Xóa một category theo id (chỉ xóa category của user hiện tại)")	
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteCategory(
 			@PathVariable Integer id,

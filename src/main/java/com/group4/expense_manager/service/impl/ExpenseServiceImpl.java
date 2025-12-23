@@ -158,6 +158,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
+    @LogActivity(
+        action = "UPDATE",
+        targetEntity = "EXPENSE",
+        description = "Updated expense"
+    )
     public Expense updateExpense(Integer expenseId, User user, Expense expenseData) {
         Expense expense = getExpenseOfUser(expenseId, user);
         // Cập nhật các trường cơ bản
